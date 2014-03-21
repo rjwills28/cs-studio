@@ -65,6 +65,7 @@
       <feature id="org.csstudio.product.feature" version="3.2.0.qualifier"/>
       <feature id="org.csstudio.pvmanager.autocomplete.feature" version="1.0.0.qualifier"/>
       <feature id="org.csstudio.trends.databrowser2.feature" version="3.2.0.qualifier"/>
+      <feature id="org.csstudio.logbook.dls.feature" version="1.0.0.qualifier"/>
    </features>
 
 
