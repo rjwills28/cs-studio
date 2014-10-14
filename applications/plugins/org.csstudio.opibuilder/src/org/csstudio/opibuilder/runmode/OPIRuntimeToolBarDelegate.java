@@ -51,11 +51,11 @@ public class OPIRuntimeToolBarDelegate{
 	
 	public void contributeToToolBar(IToolBarManager toolBarManager) {
 
+		// Too many items on the toolbar in a view often lead to 
+		// the toolbar items going on to the next row, messing up
+		// displays.
 		toolBarManager.add(partZoomInAction);
 		toolBarManager.add(partZoomOutAction);
-		toolBarManager.add(partZoomComboContributionItem);
-		toolBarManager.add(backwardAction);
-		toolBarManager.add(forwardAction);
 	}
 	
 	
