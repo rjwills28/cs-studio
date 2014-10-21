@@ -66,6 +66,7 @@ public class ByteMonitorFigure extends Figure implements Introspectable{
 		led.setOffColor(getOffColor());
 		led.setSquareLED(squareLED);
 		led.setEffect3D(effect3D);
+
 		return led;
 	}
 	
@@ -190,7 +191,7 @@ public class ByteMonitorFigure extends Figure implements Introspectable{
 		if(numBits >0){
 			Rectangle clientArea = getClientArea();
 			if (isHorizontal){
-				int avgWidth = clientArea.width/numBits;
+				int avgWidth = (clientArea.width-1)/numBits;
 				int startX = clientArea.x;
 				
 				int ledHeight = 0;
@@ -201,7 +202,7 @@ public class ByteMonitorFigure extends Figure implements Introspectable{
 				}
 				
 				for (LEDFigure led : ledFigures) {
-					led.setBounds(new Rectangle(startX,clientArea.y, avgWidth, ledHeight));
+					led.setBounds(new Rectangle(startX,clientArea.y, avgWidth+1, ledHeight));
 					startX += avgWidth;
 				}
 				
@@ -217,8 +218,8 @@ public class ByteMonitorFigure extends Figure implements Introspectable{
 					startX += avgWidth;
 				}
 			}
-			else {
-				int avgHeight = clientArea.height/numBits;
+			else { // Is vertical
+				int avgHeight = (clientArea.height-1)/numBits;
 				int startY = clientArea.y;
 				
 				int ledWidth = 0;
@@ -230,7 +231,7 @@ public class ByteMonitorFigure extends Figure implements Introspectable{
 				
 				for (LEDFigure led : ledFigures) {
 					led.setBounds(new Rectangle(
-							clientArea.x, startY, ledWidth, avgHeight));
+							clientArea.x, startY, ledWidth, avgHeight+1));
 					startY += avgHeight;
 				}
 				
