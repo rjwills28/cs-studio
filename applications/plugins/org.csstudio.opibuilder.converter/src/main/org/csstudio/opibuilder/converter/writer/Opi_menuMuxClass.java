@@ -1,9 +1,13 @@
 package org.csstudio.opibuilder.converter.writer;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.csstudio.opibuilder.converter.model.EdmMultiStrings;
 import org.csstudio.opibuilder.converter.model.Edm_menuMuxClass;
 import org.w3c.dom.Element;
+
 
 public class Opi_menuMuxClass extends OpiWidget {
 
@@ -42,31 +46,48 @@ public class Opi_menuMuxClass extends OpiWidget {
 			itemsElement.appendChild(itemElement);
 		}
 
-		Element valuesElement = con.getDocument().createElement("values");
-		widget.appendChild(valuesElement);
-		EdmMultiStrings edmZero = r.getValueZero();
+		int num_sets = 0;
+		for (int set_index = 0; set_index < Edm_menuMuxClass.MAX_SETS; set_index++) {
+			// Compress the list of symbols to a single value
+			// If multiple exist abort and log an error
 
-		for (int index = 0; index < r.getNumItems(); index++)
-		{
-			String symbol = edmZero.getValue(index).split("\"")[1];
-			Element valueElement = con.getDocument().createElement("s");
-			valueElement.appendChild(con.getDocument().createTextNode(symbol));
-			valuesElement.appendChild(valueElement);
+			if (r.getAttribute("symbol" + set_index).isExistInEDL()) {
+				Set<String> symbols = new HashSet<String>();
+				EdmMultiStrings edmVals = r.getSymbols(set_index);
+				for (int index = 0; index < r.getNumItems(); index++)
+				{
+					String symbol = edmVals.getValue(index).split("\"")[1];
+					symbols.add(symbol);
+				}
+				if (symbols.size() == 1) {
+					new OpiString(widgetContext, "target" + set_index, symbols.iterator().next());
+					// increment the number-of-sets counter
+					num_sets++;
+				}
+				else {
+					System.err.println("Multiple EDM MenuMux symbols defined, cannot convert: 'symbol" + set_index + "'");
+					break;
+				}
+			}
+
+			if (r.getAttribute("value" + set_index).isExistInEDL()) {
+				Element valuesElement = con.getDocument().createElement("values" + set_index);
+				widget.appendChild(valuesElement);
+				EdmMultiStrings edmZero = r.getValues(set_index);
+				for (int index = 0; index < r.getNumItems(); index++)
+				{
+					String symbol = edmZero.getValue(index).split("\"")[1];
+					Element valueElement = con.getDocument().createElement("s");
+					valueElement.appendChild(con.getDocument().createTextNode(symbol));
+					valuesElement.appendChild(valueElement);
+				}
+			}
 		}
 
-		Element zerosElement = con.getDocument().createElement("targets");
-		widget.appendChild(zerosElement);
-		EdmMultiStrings edmVals = r.getSymbolZero();
+		Element setsElement = con.getDocument().createElement("num_sets");
+		setsElement.appendChild(con.getDocument().createTextNode(Integer.toString(num_sets)));
+		widget.appendChild(setsElement);
 
-		for (int index = 0; index < r.getNumItems(); index++)
-		{
-			String symbol = edmVals.getValue(index).split("\"")[1];
-			Element zeroElement = con.getDocument().createElement("s");
-			zeroElement.appendChild(con.getDocument().createTextNode(symbol));
-			zerosElement.appendChild(zeroElement);
-		}
-
-		log.debug("Edm_menuMuxClass written.");
+		log.debug("Edm_menuMuxClass written");
 	}
-
 }
