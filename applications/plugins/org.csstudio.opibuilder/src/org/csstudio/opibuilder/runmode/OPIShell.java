@@ -89,7 +89,7 @@ public class OPIShell implements IOPIRuntime {
 
         actionRegistry.registerAction(new RefreshOPIAction(this));
         SingleSourceHelper.registerRCPRuntimeActions(actionRegistry, this);
-        OPIRunnerContextMenuProvider contextMenuProvider = new OPIRunnerContextMenuProvider(viewer, this);
+        OPIRunnerContextMenuProvider contextMenuProvider = new OPIRunnerContextMenuProvider(viewer, this, false);
         getSite().registerContextMenu(contextMenuProvider, viewer);
         viewer.setContextMenu(contextMenuProvider);
 

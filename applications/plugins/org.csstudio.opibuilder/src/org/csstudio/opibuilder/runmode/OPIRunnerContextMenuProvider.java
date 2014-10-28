@@ -45,16 +45,22 @@ import org.eclipse.ui.actions.ActionFactory;
 public final class OPIRunnerContextMenuProvider extends ContextMenuProvider {
 	
 	private IOPIRuntime opiRuntime;
-
+	private final boolean showFullAndCompact;
+	
+	public OPIRunnerContextMenuProvider(final EditPartViewer viewer, final IOPIRuntime opiRuntime) {
+		this(viewer, opiRuntime, true);
+	}
+	
 	/**
 	 * Constructor.
 	 * 
 	 * @param viewer
 	 *            the graphical viewer
 	 */
-	public OPIRunnerContextMenuProvider(final EditPartViewer viewer, final IOPIRuntime opiRuntime) {
+	public OPIRunnerContextMenuProvider(final EditPartViewer viewer, final IOPIRuntime opiRuntime, final boolean showFullAndCompact) {
 		super(viewer);
 		this.opiRuntime = opiRuntime;
+		this.showFullAndCompact = showFullAndCompact;
 	}
 
 	/**
@@ -75,7 +81,7 @@ public final class OPIRunnerContextMenuProvider extends ContextMenuProvider {
 		
 		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 				
-		if(!OPIBuilderPlugin.isRAP()){ //$NON-NLS-1$
+		if(!OPIBuilderPlugin.isRAP() && showFullAndCompact){ //$NON-NLS-1$
 			menu.appendToGroup(GEFActionConstants.GROUP_EDIT, 
 				WorkbenchWindowService.getInstance().getFullScreenAction(activeWindow));
 			menu.appendToGroup(GEFActionConstants.GROUP_EDIT, 
