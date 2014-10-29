@@ -105,13 +105,12 @@ public class LinkingContainerEditpart extends AbstractContainerEditpart{
 			public boolean handleChange(Object oldValue, Object newValue,
 					IFigure figure) {
 				if(newValue != null && newValue instanceof IPath){
-					IPath absolutePath = (IPath)newValue;
-					if(!absolutePath.isAbsolute())
-						absolutePath = ResourceUtil.buildAbsolutePath(
-								getWidgetModel(), absolutePath);
-					loadWidgets(absolutePath, true);
+					IPath newPath = (IPath)newValue;
+					newPath = ResourceUtil.normalisePath(getWidgetModel(), newPath, null);
+					loadWidgets(newPath, true);
+					return true;
 				}
-				return true;
+				return false;
 			}
 		};
 

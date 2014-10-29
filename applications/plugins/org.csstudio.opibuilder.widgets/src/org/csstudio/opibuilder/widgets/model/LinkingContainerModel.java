@@ -88,7 +88,7 @@ public class LinkingContainerModel extends AbstractContainerModel {
 		
 		addProperty(new FilePathProperty(PROP_OPI_FILE, "OPI File",
 				WidgetPropertyCategory.Behavior, new Path(""), //$NON-NLS-1$
-				new String[] { OPIBuilderPlugin.OPI_FILE_EXTENSION}));
+				new String[] { OPIBuilderPlugin.OPI_FILE_EXTENSION}, false));
 		
 		addProperty(new StringProperty(PROP_GROUP_NAME, "Group Name",
 				WidgetPropertyCategory.Behavior, "")); //$NON-NLS-1$
@@ -108,10 +108,9 @@ public class LinkingContainerModel extends AbstractContainerModel {
 	 * @return The target resource.
 	 */
 	public IPath getOPIFilePath() {
-		IPath absolutePath = (IPath) getProperty(PROP_OPI_FILE).getPropertyValue();
-		if(absolutePath != null && !absolutePath.isEmpty() && !absolutePath.isAbsolute())
-			absolutePath = ResourceUtil.buildAbsolutePath(this, absolutePath);
-		return absolutePath;
+		IPath path = (IPath) getProperty(PROP_OPI_FILE).getPropertyValue();
+		System.out.println("The path is " + path);
+		return ResourceUtil.normalisePath(this, path, getMacrosInput());
 	}
 	
 	public void setOPIFilePath(String path){

@@ -132,11 +132,13 @@ public class FilePathProperty extends AbstractWidgetProperty {
 				!((IPath)propertyValue).isEmpty()){
 			String s = OPIBuilderMacroUtil.replaceMacros(
 					widgetModel, propertyValue.toString());
+			System.out.println("First path: " + s);
 			IPath path = ResourceUtil.getPathFromString(s);
-			if(buildAbsolutePath && !path.isAbsolute())
-				return ResourceUtil.buildAbsolutePath(widgetModel, path);
-			else
-				return path;
+			System.out.println("Got path: " + s);
+			if (buildAbsolutePath) {
+				path = ResourceUtil.normalisePath(widgetModel, path, null);
+			}
+			return path;
 		}			
 		return super.getPropertyValue();
 	}

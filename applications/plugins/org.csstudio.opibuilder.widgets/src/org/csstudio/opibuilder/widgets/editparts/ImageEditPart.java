@@ -156,11 +156,9 @@ public final class ImageEditPart extends AbstractWidgetEditPart {
 			public boolean handleChange(final Object oldValue, final Object newValue,
 					final IFigure figure) {
 				ImageFigure imageFigure = (ImageFigure) figure;
-				IPath absolutePath = (IPath)newValue;
-				if(!absolutePath.isAbsolute())
-					absolutePath = ResourceUtil.buildAbsolutePath(
-							getWidgetModel(), absolutePath);
-				imageFigure.setFilePath(absolutePath);
+				IPath newPath = (IPath)newValue;
+				newPath = ResourceUtil.normalisePath(getWidgetModel(), newPath, null);
+				imageFigure.setFilePath(newPath);
 				autoSizeWidget(imageFigure);
 				return false;
 			}
