@@ -25,7 +25,7 @@ public class Opi_xyGraphClass extends OpiWidget {
 
 	private static Logger log = Logger
 			.getLogger("org.csstudio.opibuilder.converter.writer.Opi_xyGraphClass");
-	private static final String typeId = "xyGraph";
+	private static final String typeId = "dawn.xygraph";
 	private static final String name = "EDM xyGraph";
 	private static final String version = "1.0";
 
