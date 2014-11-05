@@ -1,0 +1,231 @@
+
+package org.csstudio.opibuilder.runmode;
+
+import org.csstudio.opibuilder.actions.RefreshOPIAction;
+import org.csstudio.opibuilder.datadefinition.NotImplementedException;
+import org.csstudio.opibuilder.editparts.ExecutionMode;
+import org.csstudio.opibuilder.editparts.WidgetEditPartFactory;
+import org.csstudio.opibuilder.model.AbstractContainerModel;
+import org.csstudio.opibuilder.model.DisplayModel;
+import org.csstudio.opibuilder.persistence.XMLUtil;
+import org.csstudio.opibuilder.util.MacrosInput;
+import org.csstudio.opibuilder.util.ResourceUtil;
+import org.csstudio.opibuilder.util.SingleSourceHelper;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.gef.DragTracker;
+import org.eclipse.gef.EditDomain;
+import org.eclipse.gef.GraphicalViewer;
+import org.eclipse.gef.Request;
+import org.eclipse.gef.editparts.ScalableFreeformRootEditPart;
+import org.eclipse.gef.tools.DragEditPartsTracker;
+import org.eclipse.gef.ui.actions.ActionRegistry;
+import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
+
+
+public class OPIShell implements IOPIRuntime {
+
+    private final Shell shell;
+    private final ActionRegistry actionRegistry;
+
+    private DisplayModel displayModel;
+
+    public OPIShell(Display display, IPath path, MacrosInput macrosInput) {
+        shell = new Shell(display);
+        displayModel = new DisplayModel(path);
+        actionRegistry = new ActionRegistry();
+
+        final GraphicalViewer viewer = new GraphicalViewerImpl();
+
+        shell.setLayout(new FillLayout());
+
+        try {
+            XMLUtil.fillDisplayModelFromInputStream(ResourceUtil.pathToInputStream(path), displayModel);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(macrosInput != null) {
+            macrosInput = macrosInput.getCopy();
+            macrosInput.getMacrosMap().putAll(displayModel.getMacrosInput().getMacrosMap());
+            displayModel.setPropertyValue(AbstractContainerModel.PROP_MACROS, macrosInput);
+        }
+
+        viewer.createControl(shell);
+        viewer.setEditPartFactory(new WidgetEditPartFactory(ExecutionMode.RUN_MODE));
+        viewer.setRootEditPart(new ScalableFreeformRootEditPart() {
+            @Override
+            public DragTracker getDragTracker(Request req) {
+                return new DragEditPartsTracker(this);
+            }
+            @Override
+            public boolean isSelectable() {
+                return false;
+            }
+        });
+
+        EditDomain editDomain = new EditDomain() {
+            @Override
+            public void loadDefaultTool() {
+                setActiveTool(new RuntimePatchedSelectionTool());
+            }
+        };
+        editDomain.addViewer(viewer);
+
+        actionRegistry.registerAction(new RefreshOPIAction(this));
+        SingleSourceHelper.registerRCPRuntimeActions(actionRegistry, this);
+        OPIRunnerContextMenuProvider contextMenuProvider = new OPIRunnerContextMenuProvider(viewer, this, false);
+        getSite().registerContextMenu(contextMenuProvider, viewer);
+        viewer.setContextMenu(contextMenuProvider);
+
+        viewer.setContents(displayModel);
+        displayModel.setViewer(viewer);
+
+        shell.setText(path.toString()); // Set title
+        // Resize the shell after it's open, so we can take into account different window borders
+        shell.addShellListener(new ShellListener() {
+            public void shellIconified(ShellEvent e) {}
+            public void shellDeiconified(ShellEvent e) {}
+            public void shellDeactivated(ShellEvent e) {}
+            public void shellClosed(ShellEvent e) {}
+            public void shellActivated(ShellEvent e) {
+                int frameX = shell.getSize().x - shell.getClientArea().width;
+                int frameY = shell.getSize().y - shell.getClientArea().height;
+                shell.setSize(displayModel.getSize().width + frameX, displayModel.getSize().height + frameY);
+                shell.setFocus();
+
+                // Only resize the first time the window is activated
+                shell.removeShellListener(this);
+
+            }
+        });
+        shell.pack();
+        /*
+         * Don't open the Shell here, as it causes SWT to think the window is on top when it really isn't.
+         * Wait until the window is open, then call shell.setFocus() in the activated listener.
+         */
+        shell.setVisible(true);
+    }
+
+    public Shell getShell() {
+        return shell;
+    }
+
+    public static void runEdmShell(final IPath path, final MacrosInput macrosInput) {
+        try {
+                new OPIShell(Display.getCurrent(), path, macrosInput);
+        } catch (Exception e) {
+                e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void addPropertyListener(IPropertyListener listener) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void createPartControl(Composite parent) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void dispose() {
+        shell.dispose();
+        actionRegistry.dispose();
+    }
+
+    @Override
+    public IWorkbenchPartSite getSite() {
+        return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite();
+    }
+
+    @Override
+    public String getTitle() {
+        return shell.getText();
+    }
+
+    @Override
+    public Image getTitleImage() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public String getTitleToolTip() {
+        return shell.getToolTipText();
+    }
+
+    @Override
+    public void removePropertyListener(IPropertyListener listener) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void setFocus() {
+        throw new NotImplementedException();
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Object getAdapter(Class adapter) {
+        if(adapter == ActionRegistry.class)
+            return this.actionRegistry;
+
+        return null;
+    }
+
+    @Override
+    public void setWorkbenchPartName(String name) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void setOPIInput(IEditorInput input) throws PartInitException {
+        IPath path = ((IFileEditorInput) input).getFile().getFullPath();
+        MacrosInput macrosInput = displayModel.getMacrosInput();
+        GraphicalViewer viewer = displayModel.getViewer();
+
+        displayModel = new DisplayModel(path);
+        try {
+            XMLUtil.fillDisplayModelFromInputStream(ResourceUtil.pathToInputStream(path), displayModel);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(macrosInput != null) {
+            macrosInput = macrosInput.getCopy();
+            macrosInput.getMacrosMap().putAll(displayModel.getMacrosInput().getMacrosMap());
+            displayModel.setPropertyValue(AbstractContainerModel.PROP_MACROS, macrosInput);
+        }
+
+        viewer.setContents(displayModel);
+        displayModel.setViewer(viewer);
+    }
+
+    @Override
+    public IEditorInput getOPIInput() {
+        IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(displayModel.getOpiFilePath());
+        return new FileEditorInput(file);
+    }
+
+    @Override
+    public DisplayModel getDisplayModel() {
+        return displayModel;
+    }
+}
+

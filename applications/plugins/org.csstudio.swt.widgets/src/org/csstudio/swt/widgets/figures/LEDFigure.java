@@ -175,20 +175,17 @@ public class LEDFigure extends AbstractBoolFigure {
 		       	pattern.dispose();
 				
 			}else { //if not 3D
-				clientArea.shrink(SQURE_BORDER_WIDTH/2, SQURE_BORDER_WIDTH/2);
-				graphics.setForegroundColor(DARK_GRAY_COLOR);
-				graphics.setLineWidth(SQURE_BORDER_WIDTH);
-				graphics.drawRectangle(clientArea);
-				
-				clientArea.shrink(SQURE_BORDER_WIDTH/2, SQURE_BORDER_WIDTH/2);
 				Color fillColor;
 				if(nStates <= 2) {
 					fillColor = booleanValue?onColor:offColor;
 				} else {
 					fillColor = bulb.getBulbColor();
 				}
-		        graphics.setBackgroundColor(fillColor);
+				graphics.setForegroundColor(getForegroundColor());
+				graphics.setBackgroundColor(fillColor);
+				graphics.setLineWidth(1);
 		        graphics.fillRectangle(clientArea);
+				graphics.drawRectangle(clientArea.x, clientArea.y, clientArea.width-1, clientArea.height-1);
 			}
 			
 		}else { // if round LED
