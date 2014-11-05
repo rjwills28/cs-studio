@@ -51,14 +51,10 @@ public abstract class AbstractOpenOPIAction extends AbstractWidgetAction {
 	public void run() {
 		// read file
 		IPath absolutePath = getPath();
-		if (!absolutePath.isAbsolute()) {
-			absolutePath = ResourceUtil.buildAbsolutePath(getWidgetModel(),
-					getPath());		
-			if(!ResourceUtil.isExsitingFile(absolutePath, true)){
-				//search from OPI search path
-				absolutePath = ResourceUtil.getFileOnSearchPath(getPath(), true);
-			}
-		}
+		System.out.println("Initial path is " + absolutePath);
+		System.out.println(getMacrosInput());
+		absolutePath = ResourceUtil.normalisePath(getWidgetModel(), absolutePath, getMacrosInput());
+		System.out.println("Normalised path: " + absolutePath);
 		if (absolutePath == null || !ResourceUtil.isExsitingFile(absolutePath, true)) {
 			try {
 				throw new FileNotFoundException(

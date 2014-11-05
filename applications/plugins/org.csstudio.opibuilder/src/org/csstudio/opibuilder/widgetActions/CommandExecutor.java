@@ -30,7 +30,10 @@ import java.io.InputStreamReader;
 import org.csstudio.java.string.StringSplitter;
 import org.csstudio.opibuilder.util.ConsoleService;
 import org.csstudio.opibuilder.util.ErrorHandlerUtil;
+import org.csstudio.opibuilder.util.ResourceUtil;
 import org.csstudio.ui.util.CustomMediaFactory;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.osgi.util.NLS;
 
 /** Helper for executing a (system) command.
@@ -92,11 +95,16 @@ public final class CommandExecutor
     private void runAndCheckCommand()
     {
         // Execute command in a certain directory
-        final File dir = new File(dir_name);
+        File dir = new File(dir_name);
         final Process process;
         try
         {
-   	     	final String[] cmd = StringSplitter.splitIgnoreInQuotes(command, ' ', true);
+            final String[] cmd = StringSplitter.splitIgnoreInQuotes(command, ' ', true);
+            if (!ResourceUtil.isExistingLocalFile(new Path(dir.getAbsolutePath()))) {
+                IPath systemPath = ResourceUtil.workspacePathToSysPath(new Path(dir.toString()));
+                dir = new File(systemPath.toString());
+            }
+            System.out.println("System path " + dir + " is absolute? " + dir.isAbsolute());
             process = Runtime.getRuntime().exec(cmd, null, dir);
         }
         catch (Throwable ex)

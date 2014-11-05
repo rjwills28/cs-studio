@@ -138,6 +138,39 @@ public class ResourceUtil {
         
 	}
 
+	public static IPath normalisePath(AbstractWidgetModel model,
+			IPath relativePath, MacrosInput macrosInput) {
+
+		System.out.println("Normalising path "+ relativePath);
+		IPath workingDir = null;
+		String wdMacro = null;
+		if (macrosInput != null) {
+			wdMacro = macrosInput.getMacrosMap().get("opi.dir");
+		} else {
+			wdMacro = OPIBuilderMacroUtil.getWidgetMacroMap(model).get(
+					"opi.dir");
+		}
+		System.out.println("macro value" + wdMacro);
+		if (wdMacro != null) {
+			workingDir = new Path(wdMacro);
+		}
+		System.out.println("working dir " + workingDir);
+		IPath correctedPath = null;
+		if (relativePath != null && !relativePath.isEmpty()
+				&& !relativePath.isAbsolute()) {
+			if (workingDir != null) {
+				correctedPath = workingDir.append(relativePath);
+				System.out.println("Corrected path is " + correctedPath);
+			} else {
+				correctedPath = buildAbsolutePath(model, relativePath);
+			}
+		} else {
+			correctedPath = relativePath;
+		}
+		return correctedPath;
+	}
+
+
 	/**Build the absolute path from the file path (without the file name part)
 	 * of the widget model and the relative path.
 	 * @param model the widget model
