@@ -7,14 +7,12 @@
  ******************************************************************************/
 package org.csstudio.opibuilder.converter.writer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.csstudio.opibuilder.converter.model.EdmDouble;
-import org.csstudio.opibuilder.converter.model.EdmInt;
 import org.csstudio.opibuilder.converter.model.Edm_activeSymbolClass;
 import org.w3c.dom.Element;
 
@@ -25,12 +23,37 @@ import org.w3c.dom.Element;
  */
 public class Opi_activeSymbolClass extends OpiWidget {
 
-	private static final String typeId = "linkingContainer";
+	private static final String typeId = "edm.symbolwidget";
 	private static final String name = "EDM Symbol";
 	private static final String version = "1.0";
+	
+	
+	private static HashMap<String, Integer> pngSizes = new HashMap<String, Integer>();
+	
+	static {
+		pngSizes.put("vacuumValve-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("mks937aPirg-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("mks937aImg-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("digitelMpcIonp-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("digitelMpcTsp-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("rga-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("absorber-symbol.edl", Integer.valueOf(18));
+		pngSizes.put("MPStempabs.edl", Integer.valueOf(21));
+		pngSizes.put("linev.edl", Integer.valueOf(21));
+		pngSizes.put("mirror.edl", Integer.valueOf(91));
+		pngSizes.put("absvw.edl", Integer.valueOf(101));
+		pngSizes.put("shuttersvw.edl", Integer.valueOf(26));
+		pngSizes.put("valvesvw.edl", Integer.valueOf(101));
+		pngSizes.put("fvalve.edl", Integer.valueOf(101));
+		pngSizes.put("leds.edl", Integer.valueOf(22));
+		pngSizes.put("sym_fault.edl", Integer.valueOf(41));
+		pngSizes.put("cmsIon-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("cmsIon-symbol_sm.edl", Integer.valueOf(23));
+		pngSizes.put("pss_ILKSym.edl", Integer.valueOf(41));
+	}
 
 	/**
-	 * Converts the Edm_activeRectangleClass to OPI Rectangle widget XML.
+	 * Converts the Edm_activeSymbolClass to OPI symbol widget XML.
 	 */
 	public Opi_activeSymbolClass(Context con, Edm_activeSymbolClass r) {
 		super(con, r);
@@ -38,17 +61,34 @@ public class Opi_activeSymbolClass extends OpiWidget {
 		setVersion(version);
 		setName(name);
 
-		if (r.getFile() != null) {
-			new OpiString(widgetContext, "opi_file", convertFileExtention(r.getFile()));
-		}
 		new OpiInt(widgetContext, "border_style", 0);
-		new OpiString(widgetContext, "group_name", "1");
+		new OpiInt(widgetContext, "symbol_number", 0);
+		
+		String s = r.getFile();
+
+		if (r.getFile() != null) {
+			int lastSlash = s.lastIndexOf('/');
+			String basename = s.substring(lastSlash + 1, s.length());
+			if (pngSizes.containsKey(basename)) {
+				int width = pngSizes.get(basename);
+				new OpiString(widgetContext, "image_file", convertToPng(r.getFile(), width));
+				new OpiInt(widgetContext, "sub_image_width", width);
+			} else {
+				System.out.println("No size for symbol " + s + " basename " + basename);
+			}
+		}	
+		
 		//single pv, no truth table
 		if (!r.isTruthTable() && r.getNumPvs() == 1 && r.getControlPvs()!=null) {
 			LinkedHashMap<String, Element> expressions = new LinkedHashMap<String, Element>();
 			Map<String, EdmDouble> minMap = r.getMinValues().getEdmAttributesMap();
 			Map<String, EdmDouble> maxMap = r.getMaxValues().getEdmAttributesMap();
 
+			// Handle invalid values
+			Element invalidNode = widgetContext.getDocument().createElement("value");
+			invalidNode.setTextContent("0");
+			expressions.put("PVUtil.getSeverity(pvs[0]) == -1", invalidNode);
+			
 			for (int i = 0; i < r.getNumStates(); i++) {
 				Element valueNode = widgetContext.getDocument().createElement("value");
 				double min = 0;
@@ -64,8 +104,10 @@ public class Opi_activeSymbolClass extends OpiWidget {
 			valueNode.setTextContent("0");
 			expressions.put("true", valueNode);
 
-			new OpiRule(widgetContext, "symbol_single_pv", "group_name", false, Arrays.asList(convertPVName(r
-					.getControlPvs().getEdmAttributesMap().get("0").get())), expressions);
+			new OpiRule(widgetContext, "symbol_single_pv", "pv_value", true, Arrays.asList(
+					convertPVName(r.getControlPvs().getEdmAttributesMap().get("0").get())), expressions);
+		}
+		/*
 		}else if(r.isTruthTable() && r.getNumPvs() >0 && r.getControlPvs()!=null){ //binary truth table
 			LinkedHashMap<String, Element> expressions = new LinkedHashMap<String, Element>();
 			Map<String, EdmDouble> minMap = r.getMinValues().getEdmAttributesMap();
@@ -153,7 +195,17 @@ public class Opi_activeSymbolClass extends OpiWidget {
 			new OpiRule(widgetContext, "symbol_multi_pvs", "group_name", false, pvnames, expressions);
 		
 		}
+		*/
 
 	}
-
+	
+	public static  String convertToPng(String originPath, int width) {
+		if (originPath.endsWith(".edl")) {
+			originPath = originPath.replace(".edl", "-" + width + ".png");
+		} else {
+			originPath = originPath + "-" + width + ".png";
+		}
+		return originPath;
+	}
+	
 }
