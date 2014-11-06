@@ -49,6 +49,9 @@ public class Opi_TwoDProfileMonitorClass extends OpiWidget {
 			new OpiInt(widgetContext, "data_width", r.getDataWidth());
 			new OpiInt(widgetContext, "data_height", Integer.parseInt(r.getHeightPvStr()));
 		}
+		
+		new OpiBoolean(widgetContext, "x_axis_visible", false);
+		new OpiBoolean(widgetContext, "y_axis_visible", false);
 
 		log.debug("Edm_activeRectangleClass written.");
 
