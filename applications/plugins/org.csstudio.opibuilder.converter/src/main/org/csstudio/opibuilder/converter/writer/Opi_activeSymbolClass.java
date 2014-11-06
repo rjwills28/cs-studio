@@ -46,6 +46,10 @@ public class Opi_activeSymbolClass extends OpiWidget {
 		pngSizes.put("valvesvw.edl", Integer.valueOf(101));
 		pngSizes.put("fvalve.edl", Integer.valueOf(101));
 		pngSizes.put("leds.edl", Integer.valueOf(22));
+		pngSizes.put("sym_fault.edl", Integer.valueOf(41));
+		pngSizes.put("cmsIon-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("cmsIon-symbol_sm.edl", Integer.valueOf(23));
+		pngSizes.put("pss_ILKSym.edl", Integer.valueOf(41));
 	}
 
 	/**
