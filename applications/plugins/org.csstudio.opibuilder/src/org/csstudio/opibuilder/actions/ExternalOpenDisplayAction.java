@@ -12,6 +12,7 @@ import java.util.logging.Level;
 
 import org.csstudio.openfile.IOpenDisplayAction;
 import org.csstudio.opibuilder.OPIBuilderPlugin;
+import org.csstudio.opibuilder.runmode.OPIShell;
 import org.csstudio.opibuilder.util.MacrosInput;
 import org.csstudio.opibuilder.util.ResourceUtil;
 import org.eclipse.core.runtime.IPath;
@@ -48,7 +49,12 @@ public class ExternalOpenDisplayAction implements IOpenDisplayAction
             originPath = ResourceUtil.getFileOnSearchPath(originPath, false);
             if (originPath == null)
                 throw new FileNotFoundException(NLS.bind("File {0} doesn't exist on search path.", path));
-        }        
-        OpenTopOPIsAction.runOPI(macrosInput, originPath);
+        }
+
+        if(macrosInput.getMacrosMap().containsKey("OPI_SHELL")) {
+            OPIShell.runEdmShell(originPath, macrosInput);
+        } else {
+            OpenTopOPIsAction.runOPI(macrosInput, originPath);
+        }
     }
 }
