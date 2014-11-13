@@ -52,7 +52,7 @@ public class ExternalOpenDisplayAction implements IOpenDisplayAction
         }
 
         if(macrosInput.getMacrosMap().containsKey("OPI_SHELL")) {
-            OPIShell.runEdmShell(originPath, macrosInput);
+            OPIShell.openOPIShell(originPath, macrosInput);
         } else {
             OpenTopOPIsAction.runOPI(macrosInput, originPath);
         }

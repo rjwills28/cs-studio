@@ -1,6 +1,9 @@
 
 package org.csstudio.opibuilder.runmode;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.csstudio.opibuilder.actions.RefreshOPIAction;
 import org.csstudio.opibuilder.datadefinition.NotImplementedException;
 import org.csstudio.opibuilder.editparts.ExecutionMode;
@@ -40,18 +43,25 @@ import org.eclipse.ui.part.FileEditorInput;
 
 public class OPIShell implements IOPIRuntime {
 
-    private final Shell shell;
-    private final ActionRegistry actionRegistry;
+    // Cache of open OPI shells.
+    private static final Set<OPIShell> openShells = new HashSet<OPIShell>();
 
+    private Shell shell;
+    private IPath path;
+    private MacrosInput macrosInput;
+    private final ActionRegistry actionRegistry;
     private DisplayModel displayModel;
 
-    public OPIShell(Display display, IPath path, MacrosInput macrosInput) {
-        shell = new Shell(display);
-        displayModel = new DisplayModel(path);
-        actionRegistry = new ActionRegistry();
+    // Private constructor means you can't open an OPIShell without adding
+    // it to the cache.
+    private OPIShell(Display display, IPath path, MacrosInput macrosInput) {
+        this.path = path;
+        this.macrosInput = macrosInput;
+        this.shell = new Shell(display);
+        this.displayModel = new DisplayModel(path);
+        this.actionRegistry = new ActionRegistry();
 
         final GraphicalViewer viewer = new GraphicalViewerImpl();
-
         shell.setLayout(new FillLayout());
 
         try {
@@ -97,21 +107,25 @@ public class OPIShell implements IOPIRuntime {
         displayModel.setViewer(viewer);
 
         shell.setText(path.toString()); // Set title
-        // Resize the shell after it's open, so we can take into account different window borders
         shell.addShellListener(new ShellListener() {
+            private boolean firstRun = true;
             public void shellIconified(ShellEvent e) {}
             public void shellDeiconified(ShellEvent e) {}
             public void shellDeactivated(ShellEvent e) {}
-            public void shellClosed(ShellEvent e) {}
+            public void shellClosed(ShellEvent e) {
+                // Remove this shell from the cache.
+                openShells.remove(OPIShell.this);
+            }
             public void shellActivated(ShellEvent e) {
-                int frameX = shell.getSize().x - shell.getClientArea().width;
-                int frameY = shell.getSize().y - shell.getClientArea().height;
-                shell.setSize(displayModel.getSize().width + frameX, displayModel.getSize().height + frameY);
-                shell.setFocus();
-
-                // Only resize the first time the window is activated
-                shell.removeShellListener(this);
-
+                if (firstRun) {
+                    // Resize the shell after it's open, so we can take into account different window borders.
+                    // Do this only the first time it's activated.
+                    int frameX = shell.getSize().x - shell.getClientArea().width;
+                    int frameY = shell.getSize().y - shell.getClientArea().height;
+                    shell.setSize(displayModel.getSize().width + frameX, displayModel.getSize().height + frameY);
+                    shell.setFocus();
+                    firstRun = false;
+                }
             }
         });
         shell.pack();
@@ -121,19 +135,54 @@ public class OPIShell implements IOPIRuntime {
          */
         shell.setVisible(true);
     }
-
-    public Shell getShell() {
-        return shell;
+    
+    public MacrosInput getMacrosInput() {
+        return macrosInput;
+    }
+    
+    public IPath getPath() {
+        return path;
+    }
+    
+    public void raiseToTop() {
+        shell.setFocus();
+    }
+    
+    @Override
+    public  boolean equals(Object o) {
+        if (o instanceof OPIShell) {
+            OPIShell opiShell = (OPIShell) o;
+        return opiShell.getMacrosInput().equals(this.getMacrosInput())
+                && opiShell.getPath().equals(this.path);
+        } else {
+            return false;
+        }
     }
 
-    public static void runEdmShell(final IPath path, final MacrosInput macrosInput) {
+    /*
+     * This is the only way to create an OPIShell
+     */
+    public static void openOPIShell(final IPath path, final MacrosInput macrosInput) {
         try {
-                new OPIShell(Display.getCurrent(), path, macrosInput);
+            boolean alreadyOpen = false;
+            for (OPIShell opiShell : openShells) {
+                if (opiShell.getPath().equals(path) && opiShell.getMacrosInput().equals(macrosInput)) {
+                    opiShell.raiseToTop();
+                    alreadyOpen = true;
+                }
+            }
+            if (!alreadyOpen) {
+                OPIShell os = new OPIShell(Display.getCurrent(), path, macrosInput);
+                openShells.add(os);
+            }
         } catch (Exception e) {
                 e.printStackTrace();
         }
     }
 
+    /********************************************
+     * Partial implementation of IOPIRuntime
+     ********************************************/
     @Override
     public void addPropertyListener(IPropertyListener listener) {
         throw new NotImplementedException();
@@ -228,4 +277,3 @@ public class OPIShell implements IOPIRuntime {
         return displayModel;
     }
 }
-
