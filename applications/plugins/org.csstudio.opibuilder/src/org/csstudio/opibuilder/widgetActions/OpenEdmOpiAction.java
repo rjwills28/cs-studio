@@ -24,7 +24,7 @@ public class OpenEdmOpiAction extends AbstractOpenOPIAction {
 	
 	@Override
 	protected void openOPI(IPath absolutePath) {
-			OPIShell.runEdmShell(absolutePath, getMacrosInput());
+		OPIShell.openOPIShell(absolutePath, getMacrosInput());
 	}
 
 	@Override
