@@ -31,26 +31,32 @@ public class Opi_activeSymbolClass extends OpiWidget {
 	private static HashMap<String, Integer> pngSizes = new HashMap<String, Integer>();
 	
 	static {
-		pngSizes.put("vacuumValve-symbol.edl", Integer.valueOf(34));
-		pngSizes.put("mks937aPirg-symbol.edl", Integer.valueOf(34));
-		pngSizes.put("mks937aImg-symbol.edl", Integer.valueOf(34));
-		pngSizes.put("digitelMpcIonp-symbol.edl", Integer.valueOf(34));
-		pngSizes.put("digitelMpcTsp-symbol.edl", Integer.valueOf(34));
-		pngSizes.put("rga-symbol.edl", Integer.valueOf(34));
 		pngSizes.put("absorber-symbol.edl", Integer.valueOf(18));
-		pngSizes.put("MPStempabs.edl", Integer.valueOf(21));
-		pngSizes.put("linev.edl", Integer.valueOf(21));
-		pngSizes.put("mirror.edl", Integer.valueOf(91));
 		pngSizes.put("absvw.edl", Integer.valueOf(101));
-		pngSizes.put("shuttersvw.edl", Integer.valueOf(26));
-		pngSizes.put("valvesvw.edl", Integer.valueOf(101));
-		pngSizes.put("fvalve.edl", Integer.valueOf(101));
-		pngSizes.put("leds.edl", Integer.valueOf(22));
-		pngSizes.put("sym_fault.edl", Integer.valueOf(41));
 		pngSizes.put("cmsIon-symbol.edl", Integer.valueOf(34));
 		pngSizes.put("cmsIon-symbol_sm.edl", Integer.valueOf(23));
-		pngSizes.put("pss_ILKSym.edl", Integer.valueOf(21));
+		pngSizes.put("digitelMpcIonp-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("digitelMpcTsp-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("fastFlap-symbol", Integer.valueOf(18));
+		pngSizes.put("fps.sym.edl", Integer.valueOf(177));
+		pngSizes.put("fvalve.edl", Integer.valueOf(101));
+		pngSizes.put("GlobalSym_heartbeat.edl", Integer.valueOf(129));
+		pngSizes.put("leds.edl", Integer.valueOf(22));
+		pngSizes.put("linev.edl", Integer.valueOf(21));
+		pngSizes.put("mirror.edl", Integer.valueOf(91));
+		pngSizes.put("mks937aPirg-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("mks937aImg-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("MPStempabs.edl", Integer.valueOf(21));
+		pngSizes.put("pss_crateILKSym.edl", Integer.valueOf(31));
 		pngSizes.put("pss_guardlineSym.edl", Integer.valueOf(41));
+		pngSizes.put("pss_ILKSym.edl", Integer.valueOf(21));
+		pngSizes.put("pss_OnOffSym.edl", Integer.valueOf(17));
+		pngSizes.put("rga-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("shuttersvw.edl", Integer.valueOf(26));
+		pngSizes.put("sym_fault.edl", Integer.valueOf(41));
+		pngSizes.put("symbols-traffic-light-symbol.edl", Integer.valueOf(21));
+		pngSizes.put("vacuumValve-symbol.edl", Integer.valueOf(34));
+		pngSizes.put("valvesvw.edl", Integer.valueOf(101));
 	}
 
 	/**
