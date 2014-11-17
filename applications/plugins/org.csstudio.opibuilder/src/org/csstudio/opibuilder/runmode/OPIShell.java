@@ -132,8 +132,15 @@ public class OPIShell implements IOPIRuntime {
         /*
          * Don't open the Shell here, as it causes SWT to think the window is on top when it really isn't.
          * Wait until the window is open, then call shell.setFocus() in the activated listener.
+         *
+         * Make some attempt at sizing the shell, sometimes a shell is not given focus and the shellActivated
+         * listener callback doesn't resize the window. It's better to have something a little to large as the
+         * default. Related to Eclipse bug 96700.
          */
+        int windowBorderX = 30;
+        int windowBorderY = 30;
         shell.setVisible(true);
+        shell.setSize(displayModel.getSize().width + windowBorderX, displayModel.getSize().height + windowBorderY);
     }
     
     public MacrosInput getMacrosInput() {
@@ -145,7 +152,10 @@ public class OPIShell implements IOPIRuntime {
     }
     
     public void raiseToTop() {
+        shell.forceFocus();
+        shell.forceActive();
         shell.setFocus();
+        shell.setActive();
     }
     
     @Override
