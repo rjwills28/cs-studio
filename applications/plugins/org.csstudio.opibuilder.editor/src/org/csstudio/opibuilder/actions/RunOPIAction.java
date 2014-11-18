@@ -60,7 +60,7 @@ public class RunOPIAction extends Action implements IWorkbenchWindowActionDelega
 			
 			IPath path = null;
 				path = ResourceUtil.getPathInEditor(input);
-				RunModeService.getInstance().runOPI(path, TargetWindow.RUN_WINDOW,  
+				RunModeService.getInstance().runOPI(path, TargetWindow.SAME_WINDOW,  
 						new Rectangle(displayModel.getLocation(), displayModel.getSize()));
 	
 		}
