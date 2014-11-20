@@ -1,6 +1,7 @@
 package org.csstudio.opibuilder.actions;
 import org.csstudio.opibuilder.runmode.IOPIRuntime;
 import org.csstudio.opibuilder.runmode.OPIRunner;
+import org.csstudio.opibuilder.runmode.OPIShell;
 import org.csstudio.opibuilder.runmode.OPIView;
 import org.csstudio.opibuilder.util.ErrorHandlerUtil;
 import org.csstudio.ui.util.perspective.PerspectiveHelper;
@@ -11,6 +12,7 @@ import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -28,18 +30,22 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 	private boolean isEnabled = true;
 
 	/** EditOPI action
+	 *  - if selected part is an OPIShell open this in the main CSS window in edit mode
 	 *  - if the selected part is in the CSS window  as an OPIView open as an editor
 	 *  - if the selected part is in the CSS in run mode, open in edit mode
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
-		IOPIRuntime opiRuntime = null;
-		// pull the OPIView or OPIRunner currently selected
-		IWorkbenchPart part = HandlerUtil.getActivePart(event);
-		if (part instanceof IOPIRuntime)
-		{
-			opiRuntime = (IOPIRuntime)part;
+		IOPIRuntime opiRuntime = OPIShell.getOPIShellForShell(HandlerUtil.getActiveShell(event));
+		if (opiRuntime == null) {
+			// if the selected object isn't an OPIShell so grab the
+			// OPIView or OPIRunner currently selected
+			IWorkbenchPart part = HandlerUtil.getActivePart(event);
+			if (part instanceof IOPIRuntime)
+			{
+				opiRuntime = (IOPIRuntime)part;
+			}
 		}
 
 		if (opiRuntime != null) {
@@ -86,7 +92,20 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 		return null;
 	}
 
+	/** Extract the active shell from an evaluation context (this
+	 *  is equivalent to HandleUtils.getActiveShell() for the
+	 *  IEvaluationContext argument)
+	 */
+	private Shell getActiveShell(IEvaluationContext context) {
+		Object var = context.getVariable(ISources.ACTIVE_SHELL_NAME);
+		if (var instanceof Shell) {
+			return (Shell) var;
+		}
+		return null;
+	}
+
 	/** The handler is enabled if:
+	 *  - selected object is an OPIShell (i.e. an EDM window)
 	 *  - selected object is an OPIView (i.e. a CSS view)
 	 *  - selected object is an OPIRunner (e.g. a CSS editor panel in runmode)
 	 */
@@ -95,8 +114,10 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 		boolean enabled = false;
 		if (evaluationContext instanceof IEvaluationContext) {
 			IWorkbenchPart part = getActivePart((IEvaluationContext) evaluationContext);
-
-			if (part instanceof OPIView || part instanceof OPIRunner) {
+			OPIShell opiShell = OPIShell.getOPIShellForShell(
+					getActiveShell((IEvaluationContext) evaluationContext));
+			
+			if (opiShell != null || part instanceof OPIView || part instanceof OPIRunner) {
 				enabled = true;
 			}
 		}
