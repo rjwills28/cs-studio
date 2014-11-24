@@ -12,6 +12,8 @@ import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.IWorkbenchPage;
@@ -108,6 +110,8 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 	 *  - selected object is an OPIShell (i.e. an EDM window)
 	 *  - selected object is an OPIView (i.e. a CSS view)
 	 *  - selected object is an OPIRunner (e.g. a CSS editor panel in runmode)
+	 *  The handler is disabled if the open resource is a URL (i.e. 
+	 *  the content is served over http)
 	 */
 	@Override
 	public void setEnabled(Object evaluationContext) {
@@ -116,10 +120,15 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 			IWorkbenchPart part = getActivePart((IEvaluationContext) evaluationContext);
 			OPIShell opiShell = OPIShell.getOPIShellForShell(
 					getActiveShell((IEvaluationContext) evaluationContext));
+			IPath path = null;
 			
 			if (opiShell != null || part instanceof OPIView || part instanceof OPIRunner) {
 				enabled = true;
+			if (part instanceof OPIView || part instanceof OPIRunner) {
+				path = ((IOPIRuntime)part).getDisplayModel().getOpiFilePath();
 			}
+			// instance of is false for null path
+			enabled = (path instanceof Path);
 		}
 		this.isEnabled = enabled;
 	}
