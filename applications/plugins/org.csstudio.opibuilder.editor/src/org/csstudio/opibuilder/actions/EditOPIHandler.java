@@ -122,8 +122,9 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 					getActiveShell((IEvaluationContext) evaluationContext));
 			IPath path = null;
 			
-			if (opiShell != null || part instanceof OPIView || part instanceof OPIRunner) {
-				enabled = true;
+			if (opiShell != null) {
+				path = ((IOPIRuntime)opiShell).getDisplayModel().getOpiFilePath();
+			} else 
 			if (part instanceof OPIView || part instanceof OPIRunner) {
 				path = ((IOPIRuntime)part).getDisplayModel().getOpiFilePath();
 			}
