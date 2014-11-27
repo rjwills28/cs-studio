@@ -15,7 +15,9 @@ import org.csstudio.opibuilder.OPIBuilderPlugin;
 import org.csstudio.opibuilder.runmode.OPIShell;
 import org.csstudio.opibuilder.util.MacrosInput;
 import org.csstudio.opibuilder.util.ResourceUtil;
+import org.csstudio.utility.product.LinkedResourcesJob;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
 
 /** Run OPI from external program, such as alarm GUI, data browser...
@@ -37,11 +39,22 @@ public class ExternalOpenDisplayAction implements IOpenDisplayAction
             OPIBuilderPlugin.getLogger().log(Level.WARNING, "ExternalOpenDisplayAction for empty display");
             return;
         }
-        // Parse macros
+        // Parse macros and links
         MacrosInput macrosInput = null;
-        if (data != null && data.trim().length() > 0)
-            // MacrosInput.recoverFromString(s) wants initial "true" for 'include_parent_macros'
-            macrosInput = MacrosInput.recoverFromString("\"true\"," + data);
+        if (data != null) {
+            String[] parts = data.split("¬");
+            if (parts[0] != null && parts[0].trim().length() > 0) {
+                // MacrosInput.recoverFromString(s) wants initial "true" for 'include_parent_macros'
+                macrosInput = MacrosInput.recoverFromString("\"true\"," + parts[0]);
+            }
+            if (parts.length > 1 && parts[1] != null && parts[1].trim().length() > 0) {
+                // The logic for creating links is wrapped in this job.  However,
+                // we want the job to finish before continuing.
+                final Job job = new LinkedResourcesJob(parts[1]);
+                job.schedule();
+                job.join();
+            }
+        }
 
         IPath originPath = ResourceUtil.getPathFromString(path);
         if (!originPath.isAbsolute())
@@ -51,10 +64,11 @@ public class ExternalOpenDisplayAction implements IOpenDisplayAction
                 throw new FileNotFoundException(NLS.bind("File {0} doesn't exist on search path.", path));
         }
 
-        if(macrosInput.getMacrosMap().containsKey("OPI_SHELL")) {
+        if(macrosInput != null && macrosInput.getMacrosMap().containsKey("OPI_SHELL")) {
             OPIShell.openOPIShell(originPath, macrosInput);
         } else {
             OpenTopOPIsAction.runOPI(macrosInput, originPath);
         }
+
     }
 }
