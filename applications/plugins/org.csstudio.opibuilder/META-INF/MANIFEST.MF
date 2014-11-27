@@ -33,7 +33,8 @@ Require-Bundle: org.eclipse.ui;resolution:=optional,
  org.csstudio.swt.widgets;bundle-version="2.1.0",
  org.csstudio.swt.xygraph;bundle-version="2.0.4",
  org.eclipse.core.resources,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.csstudio.utility.product;bundle-version="1.2.1"
 Bundle-ActivationPolicy: lazy
 Export-Package: org.csstudio.opibuilder,
  org.csstudio.opibuilder.actions,
