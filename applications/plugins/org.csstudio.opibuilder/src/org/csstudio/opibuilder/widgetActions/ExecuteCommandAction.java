@@ -10,13 +10,17 @@ package org.csstudio.opibuilder.widgetActions;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.csstudio.java.string.StringSplitter;
 import org.csstudio.opibuilder.properties.IntegerProperty;
 import org.csstudio.opibuilder.properties.StringProperty;
 import org.csstudio.opibuilder.properties.WidgetPropertyCategory;
 import org.csstudio.opibuilder.util.ConsoleService;
 import org.csstudio.opibuilder.util.ResourceUtil;
 import org.csstudio.opibuilder.widgetActions.WidgetActionFactory.ActionType;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 /**The action executing a system command.
  * @author Xihui Chen
@@ -53,7 +57,28 @@ public class ExecuteCommandAction extends AbstractWidgetAction {
 	}
 	
 	public String getCommand(){
-		return (String)getPropertyValue(PROP_COMMAND);
+		String command = (String)getPropertyValue(PROP_COMMAND);
+		try {
+			String[] commandParts = StringSplitter.splitIgnoreInQuotes(command, ' ', true);
+			IPath path = new Path(commandParts[0]);
+			if (!path.isAbsolute()) {
+				path = ResourceUtil.buildAbsolutePath(getWidgetModel(), path);
+			}
+			if (ResourceUtil.isExistingWorkspaceFile(path)) {
+				IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+				commandParts[0] = file.getRawLocation().toString();
+			}
+			StringBuilder builder = new StringBuilder();
+			builder.append(commandParts[0]);
+			for (int i = 1; i < commandParts.length; i++) {
+				builder.append(" ");
+				builder.append(commandParts[i]);
+			}
+			command = builder.toString();
+		} catch (Exception e) {
+			System.out.println("Unexpected exception thrown trying to parse command.");
+		}
+		return command;
 	}
 	
 	public String getDirectory(){
