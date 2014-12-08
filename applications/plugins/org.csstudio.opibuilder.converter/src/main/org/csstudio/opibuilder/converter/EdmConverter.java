@@ -54,6 +54,7 @@ public class EdmConverter {
 		
 		validateEdmFiles();
 		validateColorsFile();
+		validateSymbolsFile();
 		validateColorsOutput();
 		validateRobustParsing();
 		
@@ -174,6 +175,19 @@ public class EdmConverter {
 			System.exit(1);
 		}
 		System.setProperty("edm2xml.colorsFile", colorsFileName);
+	}
+
+	private static void validateSymbolsFile() {
+
+		String symbolsFileName = System.getProperty("edm2xml.SymbolsFile");
+		if (symbolsFileName != null) {
+			File symbolsFile = new File(symbolsFileName);
+			if (!symbolsFile.exists()) {
+				String errorMessage = "File " + symbolsFileName + " does not exist.";
+				log.error(errorMessage);
+				System.err.println("Error: " + errorMessage);
+			}
+		}
 	}
 
 	private static void validateColorsOutput() {

@@ -42,6 +42,8 @@ public class Opi_ByteClass extends OpiWidget {
 	
 		new OpiColor(widgetContext, "off_color", r.getOffColor(), r);
 	
+		new OpiColor(widgetContext, "foreground_color", r.getFgColor(), r);
+
 		if(r.getControlPv() !=null){
 			new OpiString(widgetContext, "pv_name", convertPVName(r.getControlPv()));
 			createColorAlarmRule(r, convertPVName(r.getControlPv()), "on_color", "onColorAlarm", false);

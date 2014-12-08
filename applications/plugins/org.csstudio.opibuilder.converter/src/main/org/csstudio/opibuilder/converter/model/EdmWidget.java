@@ -47,7 +47,15 @@ public class EdmWidget extends EdmEntity {
 	}
 	
 	public final String getAlarmPv() {
-		return alarmPv==null?colorPv:alarmPv;
+		if (alarmPv == null || alarmPv.equals("")) {
+			if (colorPv == null || colorPv.equals("")) {
+				return null;
+			} else {
+				return colorPv;
+			}
+		} else {
+			return alarmPv;
+		}
 	}
 	
 	public int getMajor() {

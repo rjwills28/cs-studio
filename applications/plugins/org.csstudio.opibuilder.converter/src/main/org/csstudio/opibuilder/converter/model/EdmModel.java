@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.csstudio.opibuilder.converter.parser.EdmColorsListParser;
 import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
+import org.csstudio.opibuilder.converter.parser.EdmSymbolsParser;
 
 
 /**
@@ -27,6 +28,7 @@ public class EdmModel {
 	private static EdmEntity genColorsList;
 	private static EdmColorsList colorsList;
 	private static Map<String, EdmDisplay> displaysMap;	// fileName - EdmDisplay map
+	private static Map<String, Integer> symbolsMap;
 
 	private static EdmModel instance;
 
@@ -53,6 +55,7 @@ public class EdmModel {
 
 		displaysMap = new HashMap<String, EdmDisplay>();
 		reloadEdmColorFile();
+		reloadEdmSymbolsFile();
 	}
 
 	public static void reloadEdmColorFile() throws EdmException{
@@ -65,6 +68,18 @@ public class EdmModel {
 		colorsList = new EdmColorsList(genColorsList);	
 	}
 	
+	public static void reloadEdmSymbolsFile() throws EdmException{
+		String symbolsFile = System.getProperty("edm2xml.symbolsFile");
+		if(symbolsFile==null || symbolsFile.isEmpty())
+			return;
+		EdmSymbolsParser symbolsParser = new EdmSymbolsParser(symbolsFile);
+		symbolsParser.parse();
+		symbolsMap = symbolsParser.getMap();
+	}
+
+	public static Map<String, Integer> getSymbolsMap() {
+		return symbolsMap;
+	}
 	/**
 	 * Returns EdmColorsList of data model.
 	 * @return EdmColorsList in current data model.

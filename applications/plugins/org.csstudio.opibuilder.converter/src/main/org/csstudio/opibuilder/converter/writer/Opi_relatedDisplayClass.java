@@ -66,11 +66,7 @@ public class Opi_relatedDisplayClass extends OpiWidget {
 			Element macrosNode = widgetContext.getDocument().createElement("macros");
 			Element includeParentMacroNode = widgetContext.getDocument().createElement(
 					"include_parent_macros");
-			EdmBoolean isReplaceMacro = r.getReplaceSymbols().getEdmAttributesMap().get("" + i);
-
-			includeParentMacroNode
-					.setTextContent(isReplaceMacro != null && isReplaceMacro.is() ? String
-							.valueOf(false) : String.valueOf(true));
+			includeParentMacroNode.setTextContent(String.valueOf(true));
 			macrosNode.appendChild(includeParentMacroNode);
 			try {
 				EdmString symbols = r.getSymbols().getEdmAttributesMap().get("" + i);
@@ -104,7 +100,7 @@ public class Opi_relatedDisplayClass extends OpiWidget {
 			EdmString menuLabel = r.getMenuLabel().getEdmAttributesMap().get("" + i);
 			descElement.setTextContent(menuLabel != null ? menuLabel.get() : "");
 
-			new OpiAction(widgetContext, "OPEN_DISPLAY", Arrays.asList(pathNode, macrosNode,
+			new OpiAction(widgetContext, "OPEN_EDM_OPI", Arrays.asList(pathNode, macrosNode,
 					replaceElement, descElement), hookFirstAction, false);
 		}
 		if (r.getButtonLabel() != null) {
