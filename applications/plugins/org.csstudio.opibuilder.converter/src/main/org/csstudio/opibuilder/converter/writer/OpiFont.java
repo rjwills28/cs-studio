@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.opibuilder.converter.writer;
 
+import java.text.DecimalFormat;
+import java.util.HashMap;
+
 import org.apache.log4j.Logger;
 import org.csstudio.opibuilder.converter.model.EdmFont;
 import org.w3c.dom.Element;
@@ -22,7 +25,23 @@ public class OpiFont extends OpiAttribute {
 	private static final int BOLD = 1 << 0;
 	private static final int ITALIC = 1 << 1;
 	
-	private final double fontScale = 0.76;
+	// EDMs X Fonts are displayed very differently to similar fonts in SWT.
+	// We need to scale them accordingly.
+	private final static HashMap<String, Double> fontScales = new HashMap<String, Double>();
+	static {
+		fontScales.put("arial", 0.78);
+		fontScales.put("helvetica", 0.75);
+		fontScales.put("courier", 0.80);
+		fontScales.put("default", 0.78);  // All Diamond fonts are variants of Arial
+	}
+
+	// We should replace some old fonts like courier with newer variants
+	private final static HashMap<String, String> typeFaces = new HashMap<String, String>();
+	static {
+		typeFaces.put("arial", "arial");
+		typeFaces.put("helvetica", "arial");
+		typeFaces.put("courier", "monospace");
+	}
 
 	private static Logger log = Logger.getLogger("org.csstudio.opibuilder.converter.writer.OpiFont");	
 
@@ -42,11 +61,22 @@ public class OpiFont extends OpiAttribute {
 
 		Element fontElement = propertyContext.getDocument().createElement("fontdata");
 		propertyContext.getElement().appendChild(fontElement);
-
-		String fontName = f.getName();
 		
-		int size = (int) (f.getSize() * fontScale);
-		String height = String.valueOf(size);
+		String fontName;
+		if(typeFaces.containsKey(f.getName())) {
+			fontName = typeFaces.get(f.getName());
+		} else {
+			fontName = f.getName();
+		}
+
+		// Round fonts down to the nearest 0.5
+		Double size;
+		if(fontScales.containsKey(f.getName())) {
+			size = Math.floor(f.getSize() * fontScales.get(f.getName()));
+		} else {
+			size = Math.floor(f.getSize() * fontScales.get("default"));
+		}
+		String height = new DecimalFormat("#.#").format(size);
 
 		// Style conversion copied from org.eclipse.swt.SWT class.
 		int s = NORMAL;
