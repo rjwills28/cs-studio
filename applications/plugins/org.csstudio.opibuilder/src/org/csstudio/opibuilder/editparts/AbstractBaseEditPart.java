@@ -482,26 +482,6 @@ public abstract class AbstractBaseEditPart extends AbstractGraphicalEditPart imp
 	protected void hookMouseClickAction() {
 		final List<AbstractWidgetAction> actions = getHookedActions();
 
-		figure.addMouseListener(new MouseListener.Stub() {
-			@Override
-			public void mousePressed(MouseEvent me) {
-				if(me.button != 2) {
-					return;
-				}
-				if(getModel() instanceof AbstractPVWidgetModel) {
-					String pvName = ((AbstractPVWidgetModel)getModel()).getPVName();
-					if (pvName != "" && pvName != null) {
-						Display display = Display.getCurrent();
-						Clipboard clipboard = new Clipboard(display);
-						clipboard.setContents(new Object[] {pvName},
-								new Transfer[] {TextTransfer.getInstance()},
-								DND.SELECTION_CLIPBOARD);
-						clipboard.dispose();
-					}
-				}
-			}
-		});
-
 		if (getWidgetModel().isEnabled() && actions != null) {
 			figure.setCursor(Cursors.HAND);
 			figure.addMouseListener(new MouseListener.Stub() {
