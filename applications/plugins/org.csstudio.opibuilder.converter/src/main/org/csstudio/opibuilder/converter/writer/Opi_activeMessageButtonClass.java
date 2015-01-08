@@ -31,7 +31,20 @@ public class Opi_activeMessageButtonClass extends OpiWidget {
 	 */
 	public Opi_activeMessageButtonClass(Context con, Edm_activeMessageButtonClass r) {
 		super(con, r);
-		setTypeId(typeId);
+		if (!r.isInvisible()) {
+			setTypeId(typeId);
+			new OpiBoolean(widgetContext, "show_led", false);
+			new OpiBoolean(widgetContext, "show_boolean_label", true);
+			new OpiBoolean(widgetContext, "square_button", true);
+			if (r.getControlPv() != null) {
+				createOnOffColorRule(r, "$(pv_name)", "background_color", r.getOnColor(),
+						r.getOffColor(), "OnOffBackgroundRule");
+			}
+		} else {
+			setTypeId("Rectangle");
+			new OpiBoolean(widgetContext, "transparent", true);
+			new OpiInt(widgetContext, "line_width", 0);
+		}
 		setName(name);
 		setVersion(version);
 
@@ -46,16 +59,20 @@ public class Opi_activeMessageButtonClass extends OpiWidget {
 				pvNameNode.setTextContent("$(pv_name)");
 				valueNode = widgetContext.getDocument().createElement("value");
 				valueNode.setTextContent(r.getPressValue());
+				// Hook actions to click in case of invisible rectangle, which can't 
+				// handle mouseDown and mouseUp separately.
 				new OpiAction(widgetContext, "WRITE_PV", Arrays.asList(pvNameNode, valueNode),
-						false, false);
+						true, true);
 			}
 			if (r.getReleaseValue() != null) {
 				pvNameNode = widgetContext.getDocument().createElement("pv_name");
 				pvNameNode.setTextContent("$(pv_name)");
 				valueNode = widgetContext.getDocument().createElement("value");
 				valueNode.setTextContent(r.getReleaseValue());
+				// Hook actions to click in case of invisible rectangle, which can't 
+				// handle mouseDown and mouseUp separately.
 				new OpiAction(widgetContext, "WRITE_PV", Arrays.asList(pvNameNode, valueNode),
-						false, false);
+						true, true);
 			}
 			new OpiInt(widgetContext, "push_action_index", r.getPressValue()==null?1:0);
 			new OpiInt(widgetContext, "released_action_index", r.getPressValue()==null?0:1);
@@ -73,11 +90,6 @@ public class Opi_activeMessageButtonClass extends OpiWidget {
 		if (r.getPassword() != null)
 			new OpiString(widgetContext, "password", r.getPassword());
 		new OpiInt(widgetContext, "show_confirm_dialog", r.getPassword() != null ? 1 : 0);
-
-		new OpiBoolean(widgetContext, "show_led", false);
-		new OpiBoolean(widgetContext, "show_boolean_label", true);
-		new OpiBoolean(widgetContext, "square_button", true);
-
 	}
 
 	/**
