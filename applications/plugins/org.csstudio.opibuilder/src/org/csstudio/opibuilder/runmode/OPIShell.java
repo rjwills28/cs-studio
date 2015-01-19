@@ -106,7 +106,13 @@ public class OPIShell implements IOPIRuntime {
         viewer.setContents(displayModel);
         displayModel.setViewer(viewer);
 
-        shell.setText(path.toString()); // Set title
+        // Set title
+        if (displayModel.getName() != null && displayModel.getName().trim().length() > 0) {
+            shell.setText(displayModel.getName());
+        } else { // If the name doesn't exist, use the OPI path
+            shell.setText(path.toString());
+        }
+
         shell.addShellListener(new ShellListener() {
             private boolean firstRun = true;
             public void shellIconified(ShellEvent e) {}
