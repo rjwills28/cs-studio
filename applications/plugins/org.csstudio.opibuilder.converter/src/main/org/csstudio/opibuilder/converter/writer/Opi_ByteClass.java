@@ -29,20 +29,17 @@ public class Opi_ByteClass extends OpiWidget {
 		setTypeId(typeId);
 		setName(name);
 		setVersion(version);
-		
+
 		// EDM byte monitors judge which way to display according to 
 		//dimensions of the widget
 		boolean horizontal = r.getW() > r.getH();
 		new OpiBoolean(widgetContext, "horizontal", horizontal);
 		new OpiBoolean(widgetContext, "effect_3d", false);
 		new OpiBoolean(widgetContext, "square_led", true);
-		
-		
+
+		new OpiColor(widgetContext, "foreground_color", r.getLineColor(), r);
 		new OpiColor(widgetContext, "on_color", r.getOnColor(), r);
-	
 		new OpiColor(widgetContext, "off_color", r.getOffColor(), r);
-	
-		new OpiColor(widgetContext, "foreground_color", r.getFgColor(), r);
 
 		if(r.getControlPv() !=null){
 			new OpiString(widgetContext, "pv_name", convertPVName(r.getControlPv()));
