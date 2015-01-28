@@ -121,6 +121,11 @@ public class OpiWidget {
 		new OpiRule(widgetContext, ruleName, opiPropId, true, Arrays.asList(pvName), expressions);		
 	}
 	
+	protected void createColorAlarmRule(EdmWidget edmWidgetClass, String alarmPVName,
+			String opiProperty, String ruleName, boolean greenOnOK) {
+		String[] colorNames = {"OK", "Invalid", "Major", "Minor"};
+		createColorAlarmRule(edmWidgetClass, alarmPVName, opiProperty, ruleName, greenOnOK, colorNames);
+	}
 	/**
 	 * Create a rule that make a color property alarm sensitive.
 	 * 
@@ -131,32 +136,32 @@ public class OpiWidget {
 	 * @param ruleName
 	 */
 	protected void createColorAlarmRule(EdmWidget edmWidgetClass, String alarmPVName,
-			String opiProperty, String ruleName, boolean greenOnOK) {
+			String opiProperty, String ruleName, boolean greenOnOK, String[] colorNames) {
 		LinkedHashMap<String, Element> expressions = new LinkedHashMap<String, Element>();
 		Element valueNode; 
 		Element colorNode;
 		if (greenOnOK) {
 			valueNode = widgetContext.getDocument().createElement("value");
 			colorNode = widgetContext.getDocument().createElement("color");
-			colorNode.setAttribute("name", "OK");
+			colorNode.setAttribute("name", colorNames[0]);
 			valueNode.appendChild(colorNode);
 			expressions.put("pvSev0==0", valueNode);
 		}
 		valueNode = widgetContext.getDocument().createElement("value");
 		colorNode = widgetContext.getDocument().createElement("color");
-		colorNode.setAttribute("name", "Invalid");
+		colorNode.setAttribute("name", colorNames[1]);
 		valueNode.appendChild(colorNode);
 		expressions.put("pvSev0==-1", valueNode);
 
 		valueNode = widgetContext.getDocument().createElement("value");
 		colorNode = widgetContext.getDocument().createElement("color");
-		colorNode.setAttribute("name", "Major");
+		colorNode.setAttribute("name", colorNames[2]);
 		valueNode.appendChild(colorNode);
 		expressions.put("pvSev0==1", valueNode);
 
 		valueNode = widgetContext.getDocument().createElement("value");
 		colorNode = widgetContext.getDocument().createElement("color");
-		colorNode.setAttribute("name", "Minor");
+		colorNode.setAttribute("name", colorNames[3]);
 		valueNode.appendChild(colorNode);
 		expressions.put("pvSev0==2", valueNode);
 
