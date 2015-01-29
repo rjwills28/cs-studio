@@ -93,6 +93,13 @@ public class ActionButtonModel extends AbstractPVWidgetModel implements ITextMod
 	 */
 	public static final String PROP_TOGGLE_BUTTON= "toggle_button"; //$NON-NLS-1$
 	
+
+	/**
+	 * If yes, the button will not bounce up when clicked.
+	 */
+	public static final String PROP_PV_CONTROL = "pv_control"; //$NON-NLS-1$
+
+
 	/**
 	 * The ID of this widget model.
 	 */
@@ -154,6 +161,9 @@ public class ActionButtonModel extends AbstractPVWidgetModel implements ITextMod
 		addProperty(new BooleanProperty(PROP_TOGGLE_BUTTON, "Toggle Button",
 		        WidgetPropertyCategory.Behavior,DEFAULT_TOGGLE_BUTTON));
 		
+		addProperty(new BooleanProperty(PROP_PV_CONTROL, "Actions when PV is disabled",
+		        WidgetPropertyCategory.Behavior,DEFAULT_TOGGLE_BUTTON), false);
+
 		addProperty(new FilePathProperty(PROP_IMAGE, "Icon File",
 				WidgetPropertyCategory.Display, new Path(""), FILE_EXTENSIONS)); //$NON-NLS-1$
 		
@@ -253,4 +263,8 @@ public class ActionButtonModel extends AbstractPVWidgetModel implements ITextMod
 		setPropertyValue(PROP_STYLE, style.ordinal());
 	}
 	
+	public boolean isPVControl() {
+		return !(Boolean)getProperty(PROP_PV_CONTROL).getPropertyValue();
+	}
+
 }
