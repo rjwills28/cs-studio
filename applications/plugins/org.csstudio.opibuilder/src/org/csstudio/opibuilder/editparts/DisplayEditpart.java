@@ -122,7 +122,7 @@ public class DisplayEditpart extends AbstractContainerEditpart {
 						if(!isActive() || getViewer() == null || getViewer().getControl().isDisposed())
 							return;
 						org.eclipse.swt.graphics.Point size = 
-								((FigureCanvas)getViewer().getControl()).getSize();
+								getViewer().getControl().getSize();
 						if(size.equals(oldSize))
 							return;
 						//In RAP, each revalidate will enlarge the shell by 1000, see  
