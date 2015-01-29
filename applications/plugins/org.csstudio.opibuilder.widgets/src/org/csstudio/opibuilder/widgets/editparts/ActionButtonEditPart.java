@@ -56,7 +56,9 @@ public class ActionButtonEditPart extends AbstractPVWidgetEditPart {
 			break;
 		}
 		updatePropSheet();	
-		markAsControlPV(AbstractPVWidgetModel.PROP_PVNAME, AbstractPVWidgetModel.PROP_PVVALUE);
+		if(model.isPVControl()) {
+			markAsControlPV(AbstractPVWidgetModel.PROP_PVNAME, AbstractPVWidgetModel.PROP_PVVALUE);
+		}
 		return delegate.doCreateFigure();
 	}
 
