@@ -26,14 +26,11 @@ import org.eclipse.gef.ui.actions.ActionRegistry;
 import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -226,52 +223,12 @@ public class OPIShell implements IOPIRuntime {
     }
 
     /********************************************
-     * Partial implementation of IOPIRuntime
+     * Implementation of IOPIRuntime
      ********************************************/
-    @Override
-    public void addPropertyListener(IPropertyListener listener) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public void createPartControl(Composite parent) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public void dispose() {
-        shell.dispose();
-        actionRegistry.dispose();
-    }
 
     @Override
     public IWorkbenchPartSite getSite() {
         return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite();
-    }
-
-    @Override
-    public String getTitle() {
-        return shell.getText();
-    }
-
-    @Override
-    public Image getTitleImage() {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public String getTitleToolTip() {
-        return shell.getToolTipText();
-    }
-
-    @Override
-    public void removePropertyListener(IPropertyListener listener) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public void setFocus() {
-        throw new NotImplementedException();
     }
 
     @SuppressWarnings("rawtypes")
@@ -284,7 +241,8 @@ public class OPIShell implements IOPIRuntime {
     }
 
     @Override
-    public void setWorkbenchPartName(String name) {
+    public void setName(String name) {
+        /* Should we set the title? */
         throw new NotImplementedException();
     }
 

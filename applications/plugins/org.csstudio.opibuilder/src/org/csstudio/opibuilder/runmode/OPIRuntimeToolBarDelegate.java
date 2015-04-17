@@ -17,7 +17,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.actions.ActionFactory;
 
 
-/**The toolbar contributor for OPI runner
+/**The toolbar contributor for OPI view.
  * @author Xihui Chen
  *
  */
@@ -61,24 +61,24 @@ public class OPIRuntimeToolBarDelegate{
 	}
 	
 	
-	/**Hook {@link IOPIRuntime} with this toolbar.
-	 * @param opiRuntime
+	/**Hook {@link OPIView} with this toolbar.
+	 * @param OPIView that requires the toolbar
 	 */
-	public void setActiveOPIRuntime(IOPIRuntime opiRuntime) {
-		
-		partZoomInAction.setPart(opiRuntime);
-		partZoomOutAction.setPart(opiRuntime);
-		partZoomComboContributionItem.setPart(opiRuntime);
+	public void setActiveOPIRuntime(OPIView opiView) {
+
+		partZoomInAction.setPart(opiView);
+		partZoomOutAction.setPart(opiView);
+		partZoomComboContributionItem.setPart(opiView);
 		DisplayOpenManager manager = 
-			(DisplayOpenManager)opiRuntime.getAdapter(DisplayOpenManager.class);
+			(DisplayOpenManager)opiView.getAdapter(DisplayOpenManager.class);
 		backwardAction.setDisplayOpenManager(manager);
 		forwardAction.setDisplayOpenManager(manager);
-		IActionBars bars = getActionBars();		
-		bars.setGlobalActionHandler(backwardAction.getId(), backwardAction);	
+		IActionBars bars = getActionBars();
+		bars.setGlobalActionHandler(backwardAction.getId(), backwardAction);
 		bars.setGlobalActionHandler(forwardAction.getId(), forwardAction);
 	
 		ActionRegistry actionRegistry =
-			(ActionRegistry) opiRuntime.getAdapter(ActionRegistry.class);
+			(ActionRegistry) opiView.getAdapter(ActionRegistry.class);
 		bars.setGlobalActionHandler(ActionFactory.PRINT.getId(), 
 				actionRegistry.getAction(ActionFactory.PRINT.getId()));
 		bars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), 

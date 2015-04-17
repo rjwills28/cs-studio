@@ -3,20 +3,20 @@ package org.csstudio.opibuilder.runmode;
 import org.csstudio.opibuilder.model.DisplayModel;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 
 /**The common interface for OPI runtime, which could be an editor or view.
  * @author Xihui Chen
  *
  */
-public interface IOPIRuntime extends IWorkbenchPart, IAdaptable{
+public interface IOPIRuntime extends IAdaptable {
 
 	/**Set workbench part name. It calls setPartName() from editor or view to make it
 	 * public visible.
 	 * @param name
 	 */
-	public void setWorkbenchPartName(String name);
+	public void setName(String name);
 	
 	/**Set the OPI input. The OPI Runtime will reload OPI from the input.
 	 * @param input
@@ -33,5 +33,11 @@ public interface IOPIRuntime extends IWorkbenchPart, IAdaptable{
 	 * @return the display model in this runtime.
 	 */
 	public DisplayModel getDisplayModel();
+
+	/**
+	 * Compatibility method.  OPIShell doesn't have a workbenchPartSite.
+	 * @return relevant IWorkbenchPartSite
+	 */
+	public IWorkbenchPartSite getSite();
 	
 }

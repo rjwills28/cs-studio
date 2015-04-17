@@ -254,7 +254,7 @@ public class OPIView extends ViewPart implements IOPIRuntime
     }
 
     @Override
-    public void setWorkbenchPartName(String name) {
+    public void setName(String name) {
         setPartName(name);
         setTitleToolTip(getOPIInput().getToolTipText());
     }

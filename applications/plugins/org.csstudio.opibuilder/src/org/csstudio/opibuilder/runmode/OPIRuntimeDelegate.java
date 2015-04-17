@@ -312,9 +312,9 @@ public class OPIRuntimeDelegate implements IAdaptable{
     private void updateEditorTitle() {
         if (displayModel.getName() != null
                 && displayModel.getName().trim().length() > 0)
-            opiRuntime.setWorkbenchPartName(displayModel.getName());
+            opiRuntime.setName(displayModel.getName());
         else
-            opiRuntime.setWorkbenchPartName(getEditorInput().getName());
+            opiRuntime.setName(getEditorInput().getName());
     }
     
     public IPath getOPIFilePath() {
