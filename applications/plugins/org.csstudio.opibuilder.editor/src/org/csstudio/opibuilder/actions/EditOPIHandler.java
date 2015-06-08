@@ -145,9 +145,9 @@ public class EditOPIHandler extends AbstractHandler implements IHandler {
 					if (part instanceof OPIView || part instanceof OPIRunner) {
 						path = ((IOPIRuntime)part).getDisplayModel().getOpiFilePath();
 					}
-				// instance of is false for null path
-				enabled = (path instanceof Path);
 				}
+				// instanceof is false for null path
+				enabled = (path instanceof Path);
 			}
 		}
 		this.isEnabled = enabled;
