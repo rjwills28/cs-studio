@@ -77,6 +77,11 @@ public class Opi_activeMessageButtonClass extends OpiWidget {
 			createPutAction("$(pv_name)", r.getPressValue());
 		}
 
+		if (r.getControlPv() != null) {
+			createOnOffColorRule(r, r.getControlPv(), "background_color", r.getOnColor(),
+					r.getOffColor(), "OnOffBackgroundRule");
+		}
+
 		// Set BoolButton-specific options.
 		if (isBoolButton) {
 			new OpiString(widgetContext, "on_label", r.getOnLabel());
@@ -97,10 +102,6 @@ public class Opi_activeMessageButtonClass extends OpiWidget {
 				new OpiString(widgetContext, "password", r.getPassword());
 
 			new OpiInt(widgetContext, "show_confirm_dialog", r.getPassword() != null ? 1 : 0);
-			if (r.getControlPv() != null) {
-				createOnOffColorRule(r, r.getControlPv(), "background_color", r.getOnColor(),
-						r.getOffColor(), "OnOffBackgroundRule");
-			}
 		}
 	}
 
@@ -144,7 +145,7 @@ public class Opi_activeMessageButtonClass extends OpiWidget {
 		colorNode.setAttribute("green", "" + OpiColor.colorComponentTo8Bits(onColor.getGreen()));
 		colorNode.setAttribute("blue", "" + OpiColor.colorComponentTo8Bits(onColor.getBlue()));
 		valueNode.appendChild(colorNode);
-		expressions.put("widget.getValue().booleanValue()", valueNode);
+		expressions.put("widget.getValue() == 1", valueNode);
 
 		valueNode = widgetContext.getDocument().createElement("value");
 		colorNode = widgetContext.getDocument().createElement("color");
