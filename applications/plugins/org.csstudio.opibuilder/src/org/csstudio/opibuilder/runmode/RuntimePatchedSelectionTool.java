@@ -94,6 +94,7 @@ public class RuntimePatchedSelectionTool extends SelectionTool {
 							DND.SELECTION_CLIPBOARD);
 					clipboard.dispose();
 					IFigure figure = apvwep.getFigure();
+					oldCursor = figure.getCursor();
 					figure.setCursor(copyPvCursor);
 					cursorChanged = true;
 				}

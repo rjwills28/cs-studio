@@ -35,7 +35,6 @@ import org.csstudio.opibuilder.OPIBuilderPlugin;
 import org.csstudio.opibuilder.editparts.FixedPositionAnchor.AnchorPosition;
 import org.csstudio.opibuilder.editpolicies.WidgetComponentEditPolicy;
 import org.csstudio.opibuilder.editpolicies.WidgetNodeEditPolicy;
-import org.csstudio.opibuilder.model.AbstractPVWidgetModel;
 import org.csstudio.opibuilder.model.AbstractWidgetModel;
 import org.csstudio.opibuilder.model.ConnectionModel;
 import org.csstudio.opibuilder.properties.AbstractWidgetProperty;
@@ -81,11 +80,6 @@ import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 import org.eclipse.gef.requests.DropRequest;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionFilter;
 import org.eclipse.ui.progress.UIJob;
 
@@ -477,13 +471,23 @@ public abstract class AbstractBaseEditPart extends AbstractGraphicalEditPart imp
 	}
 
 	/**
+	 * Change cursor to hand if PV has an action available.
+	 */
+	@Override
+	public void showTargetFeedback(org.eclipse.gef.Request request) {
+		final List<AbstractWidgetAction> actions = getHookedActions();
+		if (getWidgetModel().isEnabled() && actions != null) {
+			figure.setCursor(Cursors.HAND);
+		}
+	}
+
+	/**
 	 * Hook the default {@link AbstractOpenOPIAction} with mouse click.
 	 */
 	protected void hookMouseClickAction() {
 		final List<AbstractWidgetAction> actions = getHookedActions();
 
 		if (getWidgetModel().isEnabled() && actions != null) {
-			figure.setCursor(Cursors.HAND);
 			figure.addMouseListener(new MouseListener.Stub() {
 
 				@Override
