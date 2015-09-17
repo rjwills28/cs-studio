@@ -71,13 +71,17 @@ public class PVNameConversion {
      * @return local CSS PV name
      */
     private static String parseLocPV(String pvName) {
-        if(pvName.startsWith("LOC\\")){
+        if (pvName.startsWith("LOC\\")) {
             try {
                 String newName = pvName.replace("$(!W)", "$(DID)");
                 newName = newName.replaceAll("\\x24\\x28\\x21[A-Z]{1}\\x29", "\\$(DID)");
                 String[] parts = StringSplitter.splitIgnoreInQuotes(newName, '=', true);
                 StringBuilder sb = new StringBuilder("loc://");
-                sb.append(parts[0].substring(5));
+                if (pvName.startsWith("LOC\\\\")) {
+                    sb.append(parts[0].substring(5));
+                } else {
+                    sb.append(parts[0].substring(4));
+                }
                 if (parts.length > 1) {
                     String type = "";
                     String initValue = parts[1];
@@ -85,25 +89,42 @@ public class PVNameConversion {
                         type = "<VDouble>";
                         initValue = parts[1].substring(2);
                     } else if (parts[1].startsWith("i:")) {
-//                        type = "<VDouble>";
+                        type = "<VDouble>";
                         initValue = parts[1].substring(2);
                     } else if (parts[1].startsWith("s:")) {
-//                          type = "<VString>";
-                        initValue = "\""+parts[1].substring(2)+"\"";
+                        type = "<VString>";
+                        initValue = "\"" + parts[1].substring(2) + "\"";
                     } else if (parts[1].startsWith("e:")) { // Enumerated pv
                                                             // cannot be
                                                             // converted.
-                        return pvName;
+                        type = "<VEnum>";
+                        initValue = parseEnumPV(parts[1]);
                     }
-                    //doesn't append type yet to support utility pv.
+                    sb.append(type);
                     sb.append("(").append(initValue).append(")");
-                    }
+                }
                 return sb.toString();
             } catch (Exception e) {
-                    return pvName;
-                }
+                return pvName;
             }
-            return pvName;
+        }
+        return pvName;
+    }
+
+    private static String parseEnumPV(String enumPV) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            String[] parts = StringUtils.split(enumPV, ':');
+            parts = StringUtils.split(parts[1], ',');
+            int index = Integer.valueOf(parts[0]).intValue();
+            sb.append(index);
+            for (int i  = 1; i < parts.length; i++) {
+                sb.append(String.format(", \"%s\"", parts[i]));
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return sb.toString();
     }
 
 

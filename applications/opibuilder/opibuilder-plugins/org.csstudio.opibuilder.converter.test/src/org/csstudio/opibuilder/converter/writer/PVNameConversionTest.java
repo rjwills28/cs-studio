@@ -29,6 +29,8 @@ public class PVNameConversionTest {
     String CALC_SUM_CSS = "=(pv(\"PVNAME\") + 1000)";
     String CALC_LOC_EDM = "CALC\\\\\\{A=0||A=3\\}(LOC\\\\$(!W)menumux)";
     String CALC_LOC_CSS = "=(pv(\"loc://$(DID)menumux\") == 0 || pv(\"loc://$(DID)menumux\") == 3)";
+    String LOC_ENUM_EDM = "LOC\\show-required=e:0,hide,show";
+    String LOC_ENUM_CSS = "loc://show-required<VEnum>(0, \"hide\", \"show\")";
     // Some failure cases
     String LOC_JUNK_PV_EDM = "LOC\\\\junkasdaaas(((Gas'";
     String LOC_JUNK_PV_CSS = "loc://junkasdaaas(((Gas'";
@@ -92,6 +94,11 @@ public class PVNameConversionTest {
     @Test
     public void calcAndLocPV() {
         testConversion(CALC_LOC_EDM, CALC_LOC_CSS);
+    }
+
+    @Test
+    public void locEnumPV() {
+        testConversion(LOC_ENUM_EDM, LOC_ENUM_CSS);
     }
 
     @Test
