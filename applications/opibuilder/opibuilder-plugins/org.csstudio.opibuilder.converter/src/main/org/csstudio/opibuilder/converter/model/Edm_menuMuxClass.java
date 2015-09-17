@@ -9,6 +9,7 @@ public class Edm_menuMuxClass extends EdmWidget {
     public static final int MAX_SETS = 8;
 
     @EdmAttributeAn private int numItems;
+    @EdmAttributeAn @EdmOptionalAn private String controlPv;
     @EdmAttributeAn @EdmOptionalAn private EdmMultiStrings symbolTag;
     @EdmAttributeAn @EdmOptionalAn private EdmMultiStrings symbol0;
     @EdmAttributeAn @EdmOptionalAn private EdmMultiStrings value0;
@@ -30,6 +31,10 @@ public class Edm_menuMuxClass extends EdmWidget {
 
     public Edm_menuMuxClass(EdmEntity genericEntity) throws EdmException {
         super(genericEntity);
+    }
+
+    public String getControlPv() {
+        return controlPv;
     }
 
     public int getNumItems() {

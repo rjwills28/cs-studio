@@ -29,6 +29,8 @@ public class Opi_menuMuxClass extends OpiWidget {
 
         Element widget = widgetContext.getElement();
 
+        new OpiString(widgetContext, "pv_name", convertPVName(r.getControlPv()));
+
         if (r.getAttribute("initialState").isExistInEDL()) {
             new OpiString(widgetContext, "initial", r.getInitialState());
         }
