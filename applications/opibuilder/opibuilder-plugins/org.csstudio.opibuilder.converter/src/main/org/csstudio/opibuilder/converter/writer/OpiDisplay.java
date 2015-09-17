@@ -54,6 +54,8 @@ public class OpiDisplay {
 
         new OpiFont(context, "font", d.getFont());
 
+        new OpiString(context, "boy_version", "4.0.0");
+
         new OpiColor(context, "foreground_color", d.getFgColor(), null);
         new OpiColor(context, "background_color", d.getBgColor(), null);
 
