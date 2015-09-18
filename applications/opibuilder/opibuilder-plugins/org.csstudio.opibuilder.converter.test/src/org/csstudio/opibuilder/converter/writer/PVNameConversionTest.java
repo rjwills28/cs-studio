@@ -18,9 +18,9 @@ public class PVNameConversionTest {
     String LOC_CSS = "loc://show-required";
     // There's no VInt local PV, but VDouble works
     String LOC_INT_EDM = "LOC\\\\gridSizePV=i:100";
-    String LOC_INT_CSS = "loc://gridSizePV(100)";
+    String LOC_INT_CSS = "loc://gridSizePV<VDouble>(100)";
     String LOC_INT_WINDOW_EDM = "LOC\\\\$(!W)menumux=i:0";
-    String LOC_INT_WINDOW_CSS = "loc://$(DID)menumux(0)";
+    String LOC_INT_WINDOW_CSS = "loc://$(DID)menumux<VDouble>(0)";
     String CALC_LT_EDM = "CALC\\\\\\{A<100000000\\}($(P)$(M).$(ACCL))";
     String CALC_LT_CSS = "=(pv(\"$(P)$(M).$(ACCL)\") < 100000000)";
     String CALC_OR_EDM = "CALC\\\\\\{A=0||A=3\\}(PVNAME)";
