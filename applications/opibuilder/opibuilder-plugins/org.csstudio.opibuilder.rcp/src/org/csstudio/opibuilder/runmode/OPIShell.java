@@ -1,10 +1,11 @@
 package org.csstudio.opibuilder.runmode;
 
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.csstudio.opibuilder.OPIBuilderPlugin;
 import org.csstudio.opibuilder.actions.RefreshOPIAction;
@@ -17,6 +18,12 @@ import org.csstudio.opibuilder.persistence.XMLUtil;
 import org.csstudio.opibuilder.util.MacrosInput;
 import org.csstudio.opibuilder.util.ResourceUtil;
 import org.csstudio.opibuilder.util.SingleSourceHelper;
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.NotEnabledException;
+import org.eclipse.core.commands.NotHandledException;
+import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -40,41 +47,72 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.services.IServiceLocator;
 
+/**
+ * An OPIShell is a CS-Studio OPI presented in an SWT shell, which allows
+ * more free integration with the host operating system.  In most ways
+ * it behaves like an OPIView.
+ *
+ * All OPIShells are maintained in a static set within this class.  To
+ * maintain a cache of all shells, construction is limited to a static
+ * method.  The private constructor means that this class cannot be
+ * extended.
+ *
+ * In order for the OPIShell to be integrated with Eclipse functionality,
+ * in particular the right-click context menu, it needs to be registered
+ * against an existing IViewPart.
+ *
+ * @author Will Rogers, Matthew Furseman
+ *
+ */
+public final class OPIShell implements IOPIRuntime {
 
-public class OPIShell implements IOPIRuntime {
+    // Estimates for the size of a window border, for how much
+    // bigger to make a shell than the size of its contents.
+    private static final int WINDOW_BORDER_X = 30;
+    private static final int WINDOW_BORDER_Y = 30;
 
-    // Cache of open OPI shells.
-    private static final Set<OPIShell> openShells = new HashSet<OPIShell>();
+    private static Logger log = OPIBuilderPlugin.getLogger();
+    public static final String OPI_SHELLS_CHANGED_ID = "org.csstudio.opibuilder.opiShellsChanged";
+    // Cache of open OPI shells in order of opening.
+    private static final Set<OPIShell> openShells = new LinkedHashSet<OPIShell>();
+    // The view against which the context menu is registered.
+    private IViewPart view;
 
+    // Variables that do not change for any shell.
     private final Image icon;
     private final Shell shell;
-    private final IPath path;
+    private final ActionRegistry actionRegistry;
+    private final GraphicalViewer viewer;
+    // Variables that change if OPI input is changed.
+    private DisplayModel displayModel;
+    private IPath path;
     // macrosInput should not be null.  If there are no macros it should
     // be an empty MacrosInput object.
-    private final MacrosInput macrosInput;
-    private final ActionRegistry actionRegistry;
-    private DisplayModel displayModel;
+    private MacrosInput macrosInput;
 
     // Private constructor means you can't open an OPIShell without adding
     // it to the cache.
-    private OPIShell(Display display, IPath path, MacrosInput macrosInput) {
-
-        this.icon = OPIBuilderPlugin.imageDescriptorFromPlugin(OPIBuilderPlugin.PLUGIN_ID, "icons/OPIRunner.png")
-                .createImage(display);
+    private OPIShell(Display display, IPath path, MacrosInput macrosInput) throws Exception {
         this.path = path;
         this.macrosInput = macrosInput;
-        this.shell = new Shell(display);
-        this.shell.setImage(icon);
-        this.displayModel = new DisplayModel(path);
-        this.displayModel.setOpiRuntime(this);
-        this.actionRegistry = new ActionRegistry();
+        icon = OPIBuilderPlugin.imageDescriptorFromPlugin(OPIBuilderPlugin.PLUGIN_ID, "icons/OPIRunner.png")
+                .createImage(display);
 
-        final GraphicalViewer viewer = new GraphicalViewerImpl();
+        shell = new Shell(display);
+        shell.setImage(icon);
+        displayModel = new DisplayModel(path);
+        displayModel.setOpiRuntime(this);
+        actionRegistry = new ActionRegistry();
+
+        viewer = new GraphicalViewerImpl();
         viewer.createControl(shell);
         viewer.setEditPartFactory(new WidgetEditPartFactory(ExecutionMode.RUN_MODE));
         viewer.setRootEditPart(new ScalableFreeformRootEditPart() {
@@ -96,74 +134,104 @@ public class OPIShell implements IOPIRuntime {
         };
         editDomain.addViewer(viewer);
 
+        displayModel = createDisplayModel();
+        setTitle();
+
+        shell.setLayout(new FillLayout());
+        shell.addShellListener(new ShellListener() {
+            private boolean firstRun = true;
+            public void shellIconified(ShellEvent e) {}
+            public void shellDeiconified(ShellEvent e) {}
+            public void shellDeactivated(ShellEvent e) {}
+            public void shellClosed(ShellEvent e) {
+                // Remove this shell from the cache.
+                openShells.remove(OPIShell.this);
+                sendUpdateCommand();
+            }
+            public void shellActivated(ShellEvent e) {
+                if (firstRun) {
+                    // Resize the shell after it's open, so we can take into account different window borders.
+                    // Do this only the first time it's activated.
+                    resizeToContents();
+                    shell.setFocus();
+                    firstRun = false;
+                }
+            }
+        });
+        shell.addDisposeListener(new DisposeListener() {
+
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                if (!icon.isDisposed()) icon.dispose();
+            }
+        });
+        /*
+         * Don't open the Shell here, as it causes SWT to think the window is on top when it really isn't.
+         * Wait until the window is open, then call shell.setFocus() in the activated listener.
+         *
+         * Make some attempt at sizing the shell, sometimes a shell is not given focus and the shellActivated
+         * listener callback doesn't resize the window. It's better to have something a little too large as the
+         * default. Related to Eclipse bug 96700.
+         */
+        shell.setSize(displayModel.getSize().width + WINDOW_BORDER_X, displayModel.getSize().height + WINDOW_BORDER_Y);
+        shell.setVisible(true);
+
+    }
+
+    /**
+     * In order for the right-click menu to work, this shell must be registered
+     * with a view.  Register the context menu against the view.
+     * Make the view the default.
+     * @param view
+     */
+    public void registerWithView(IViewPart view) {
+        this.view = view;
         actionRegistry.registerAction(new RefreshOPIAction(this));
         SingleSourceHelper.registerRCPRuntimeActions(actionRegistry, this);
         OPIRunnerContextMenuProvider contextMenuProvider = new OPIRunnerContextMenuProvider(viewer, this);
         getSite().registerContextMenu(contextMenuProvider, viewer);
         viewer.setContextMenu(contextMenuProvider);
-
-        try {
-            displayModel = createDisplayModel(path, macrosInput, viewer);
-            setTitle();
-
-            shell.setLayout(new FillLayout());
-            shell.addShellListener(new ShellListener() {
-                private boolean firstRun = true;
-                public void shellIconified(ShellEvent e) {}
-                public void shellDeiconified(ShellEvent e) {}
-                public void shellDeactivated(ShellEvent e) {}
-                public void shellClosed(ShellEvent e) {
-                    // Remove this shell from the cache.
-                    openShells.remove(OPIShell.this);
-                }
-                public void shellActivated(ShellEvent e) {
-                    if (firstRun) {
-                        // Resize the shell after it's open, so we can take into account different window borders.
-                        // Do this only the first time it's activated.
-                        resizeToContents();
-                        shell.setFocus();
-                        firstRun = false;
-                    }
-                }
-            });
-            shell.addDisposeListener(new DisposeListener() {
-
-                @Override
-                public void widgetDisposed(DisposeEvent e) {
-                    if (!icon.isDisposed()) icon.dispose();
-                }
-            });
-            shell.pack();
-            if (!displayModel.getLocation().equals(DisplayModel.NULL_LOCATION)) {
-                shell.setLocation(displayModel.getLocation().getSWTPoint());
-            }
-            /*
-             * Don't open the Shell here, as it causes SWT to think the window is on top when it really isn't.
-             * Wait until the window is open, then call shell.setFocus() in the activated listener.
-             *
-             * Make some attempt at sizing the shell, sometimes a shell is not given focus and the shellActivated
-             * listener callback doesn't resize the window. It's better to have something a little too large as the
-             * default. Related to Eclipse bug 96700.
-             */
-            int windowBorderX = 30;
-            int windowBorderY = 30;
-            shell.setSize(displayModel.getSize().width + windowBorderX, displayModel.getSize().height + windowBorderY);
-            shell.setVisible(true);
-        } catch (Exception e) {
-            OPIBuilderPlugin.getLogger().log(Level.WARNING, "Failed to create new OPIShell.", e);
-        }
     }
 
-    private DisplayModel createDisplayModel(IPath path, MacrosInput macrosInput, GraphicalViewer viewer)
-            throws Exception {
+    public MacrosInput getMacrosInput() {
+        return macrosInput;
+    }
+
+    public IPath getPath() {
+        return path;
+    }
+
+    public void raiseToTop() {
+        shell.forceFocus();
+        shell.forceActive();
+        shell.setFocus();
+        shell.setActive();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        boolean equal = false;
+        if (o instanceof OPIShell) {
+            OPIShell opiShell = (OPIShell) o;
+            equal = opiShell.getMacrosInput().equals(this.getMacrosInput());
+            equal &= opiShell.getPath().equals(this.path);
+        }
+        return equal;
+    }
+
+    public void close() {
+        shell.close();
+        dispose();
+    }
+
+    private DisplayModel createDisplayModel() throws Exception {
         displayModel = new DisplayModel(path);
         XMLUtil.fillDisplayModelFromInputStream(ResourceUtil.pathToInputStream(path), displayModel);
-        if(macrosInput != null) {
+        if (macrosInput != null) {
             macrosInput = macrosInput.getCopy();
             macrosInput.getMacrosMap().putAll(displayModel.getMacrosInput().getMacrosMap());
             displayModel.setPropertyValue(AbstractContainerModel.PROP_MACROS, macrosInput);
         }
-
         viewer.setContents(displayModel);
         displayModel.setViewer(viewer);
         displayModel.setOpiRuntime(this);
@@ -184,61 +252,57 @@ public class OPIShell implements IOPIRuntime {
         shell.setSize(displayModel.getSize().width + frameX, displayModel.getSize().height + frameY);
     }
 
-    public MacrosInput getMacrosInput() {
-        return macrosInput;
-    }
+    /*************************************************************
+     * Static helper methods to manage open shells.
+     *************************************************************/
 
-    public IPath getPath() {
-        return path;
-    }
-
-    public void raiseToTop() {
-        shell.forceFocus();
-        shell.forceActive();
-        shell.setFocus();
-        shell.setActive();
-    }
-
-    @Override
-    public  boolean equals(Object o) {
-        if (o instanceof OPIShell) {
-            OPIShell opiShell = (OPIShell) o;
-        return opiShell.getMacrosInput().equals(this.getMacrosInput())
-                && opiShell.getPath().equals(this.path);
-        } else {
-            return false;
-        }
-    }
-
-    /*
+    /**
      * This is the only way to create an OPIShell
      */
     public static void openOPIShell(IPath path, MacrosInput macrosInput) {
         if (macrosInput == null) {
             macrosInput = new MacrosInput(new LinkedHashMap<String, String>(), false);
         }
-        try {
-            boolean alreadyOpen = false;
-            for (OPIShell opiShell : openShells) {
-                if (opiShell.getPath().equals(path) && opiShell.getMacrosInput().equals(macrosInput)) {
-                    opiShell.raiseToTop();
-                    alreadyOpen = true;
-                }
+        boolean alreadyOpen = false;
+        for (OPIShell opiShell : openShells) {
+            if (opiShell.getPath().equals(path) && opiShell.getMacrosInput().equals(macrosInput)) {
+                opiShell.raiseToTop();
+                alreadyOpen = true;
             }
-            if (!alreadyOpen) {
-                OPIShell os = new OPIShell(Display.getCurrent(), path, macrosInput);
+        }
+        if (!alreadyOpen) {
+            OPIShell os = null;
+            try {
+                os = new OPIShell(Display.getCurrent(), path, macrosInput);
                 openShells.add(os);
-            }
-        } catch (Exception e) {
-                e.printStackTrace();
+                sendUpdateCommand();
+            } catch (Exception e) {
+                if (os != null) {
+                    os.dispose();
+                }
+                log.log(Level.WARNING, "Failed to create new OPIShell.", e);
+           }
+        }
+
+    }
+
+    /**
+     * Close all open OPIShells.  Use getAllShells() for a copy
+     * of the set, to avoid removing items during iteration.
+     */
+    public static void closeAll() {
+        for (OPIShell s : getAllShells()) {
+            s.close();
         }
     }
 
     /**
-     *  Getter for the Shell associated with this OPIShell
+     * Show all open OPIShells.
      */
-    public Shell getShell() {
-        return this.shell;
+    public static void showAll() {
+        for (OPIShell s : getAllShells()) {
+            s.raiseToTop();
+        }
     }
 
     /** Search the cache of open OPIShells to find a match for the
@@ -249,14 +313,37 @@ public class OPIShell implements IOPIRuntime {
     public static OPIShell getOPIShellForShell(final Shell target) {
         OPIShell foundShell = null;
         if (target != null) {
-            for (OPIShell os : OPIShell.openShells) {
-                if (os.getShell() == target) {
+            for (OPIShell os : openShells) {
+                if (os.shell == target) {
                     foundShell = os;
                     break;
                 }
             }
         }
         return foundShell;
+    }
+
+    /**
+     * Return a copy of the set of open shells.  Returning the same
+     * instance may lead to problems when closing shells.
+     * @return a copy of the set of open shells.
+     */
+    public static Set<OPIShell> getAllShells() {
+        return new LinkedHashSet<OPIShell>(openShells);
+    }
+
+    /**
+     * Alert whoever is listening that a new OPIShell has been created.
+     */
+    private static void sendUpdateCommand() {
+        IServiceLocator serviceLocator = PlatformUI.getWorkbench();
+        ICommandService commandService = (ICommandService) serviceLocator.getService(ICommandService.class);
+        try {
+            Command command = commandService.getCommand(OPI_SHELLS_CHANGED_ID);
+            command.executeWithChecks(new ExecutionEvent());
+        } catch (ExecutionException | NotHandledException | NotEnabledException | NotDefinedException e) {
+            log.log(Level.WARNING, "Failed to send OPI shells changed command", e);
+        }
     }
 
     /********************************************
@@ -280,7 +367,11 @@ public class OPIShell implements IOPIRuntime {
 
     @Override
     public IWorkbenchPartSite getSite() {
-        return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite();
+        if (view != null) {
+            return view.getSite();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -311,9 +402,10 @@ public class OPIShell implements IOPIRuntime {
     @SuppressWarnings("rawtypes")
     @Override
     public Object getAdapter(Class adapter) {
-        if(adapter == ActionRegistry.class)
+        if (adapter == ActionRegistry.class)
             return this.actionRegistry;
-
+        if (adapter == GraphicalViewer.class)
+            return this.viewer;
         return null;
     }
 
@@ -322,18 +414,19 @@ public class OPIShell implements IOPIRuntime {
         throw new NotImplementedException();
     }
 
+    /**
+     * Render a new OPI in the same shell.  The file path
+     * changes but the macros remain the same.  Is this correct?
+     */
     @Override
     public void setOPIInput(IEditorInput input) throws PartInitException {
         try {
-            IPath path = null;
             if (input instanceof IFileEditorInput) {
-                path = ((IFileEditorInput) input).getFile().getFullPath();
+                this.path = ((IFileEditorInput) input).getFile().getFullPath();
             } else if (input instanceof RunnerInput) {
-                path = ((RunnerInput) input).getPath();
+                this.path = ((RunnerInput) input).getPath();
             }
-            MacrosInput macrosInput = displayModel.getMacrosInput();
-            GraphicalViewer viewer = displayModel.getViewer();
-            displayModel = createDisplayModel(path, macrosInput, viewer);
+            displayModel = createDisplayModel();
             setTitle();
             resizeToContents();
         } catch (Exception e) {
@@ -356,4 +449,5 @@ public class OPIShell implements IOPIRuntime {
     public int hashCode() {
         return Objects.hash(OPIShell.class, macrosInput, path);
     }
+
 }

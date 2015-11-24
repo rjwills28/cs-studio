@@ -12,7 +12,7 @@ import java.util.Comparator;
 import org.csstudio.alarm.beast.AnnunciationFormatter;
 import org.csstudio.alarm.beast.client.AlarmTreePV;
 import org.csstudio.alarm.beast.client.GDCDataStructure;
-import org.epics.util.time.Timestamp;
+import org.diirt.util.time.Timestamp;
 
 /** Comparator (= table sorter) that compares one column of an alarm.
  *  @author Kay Kasemir
@@ -99,9 +99,9 @@ public class AlarmComparator implements Comparator<AlarmTreePV>
                 protected int doCompare(final AlarmTreePV pv1, final AlarmTreePV pv2)
                 {
                     final String desc1 = AnnunciationFormatter.format(pv1.getDescription(),
-                            pv1.getSeverity().getDisplayName(), pv1.getValue());
+                            pv1.getSeverity().getDisplayName(), pv1.getValue(), true);
                     final String desc2 = AnnunciationFormatter.format(pv2.getDescription(),
-                            pv2.getSeverity().getDisplayName(), pv2.getValue());
+                            pv2.getSeverity().getDisplayName(), pv2.getValue(), true);
                     final int cmp = desc1.compareTo(desc2);
                     return cmp != 0  ?  cmp  :  super.doCompare(pv1, pv2);
                 }
