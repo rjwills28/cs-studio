@@ -74,9 +74,11 @@
                icon="icons/edit.gif"
                label="Edit OPI"
                style="push">
-            <visibleWhen checkEnabled="true">
+            <visibleWhen>
                 <with variable="activeShell">
-                    <test property="org.csstudio.opibuilder.isOPIShell" />
+                    <test
+                        property="org.csstudio.opibuilder.isOPIShell"
+                        forcePluginActivation="true"/>
                 </with>
             </visibleWhen>
          </command>
