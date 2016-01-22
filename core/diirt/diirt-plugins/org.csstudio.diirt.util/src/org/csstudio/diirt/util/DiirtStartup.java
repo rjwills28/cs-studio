@@ -1,4 +1,4 @@
-package org.csstudio.diirt.util.preferences;
+package org.csstudio.diirt.util;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -6,6 +6,12 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import org.csstudio.utility.product.IWorkbenchWindowAdvisorExtPoint;
+import org.diirt.datasource.CompositeDataSource;
+import org.diirt.datasource.CompositeDataSourceConfiguration;
+import org.diirt.datasource.DataSource;
+import org.diirt.datasource.DataSourceProvider;
+import org.diirt.datasource.PVManager;
+import org.diirt.util.config.Configuration;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -29,7 +35,7 @@ public class DiirtStartup implements IWorkbenchWindowAdvisorExtPoint {
 
     @Override
     public void preWindowOpen() {
-        log.fine("DIIRT: preWindowOpen");
+        log.config("DIIRT: preWindowOpen");
         try {
             final Location instanceLoc = Platform.getInstanceLocation();
             final String defaultDiirtConfig = new URL(instanceLoc.getURL(),"diirt").toURI().getPath();
@@ -38,6 +44,13 @@ public class DiirtStartup implements IWorkbenchWindowAdvisorExtPoint {
             String diirtHome = getSubstitutedPath(prefs.getString("org.csstudio.diirt.util.preferences", "diirt.home", defaultDiirtConfig, null));
             log.config("Setting Diirt configuration folder to :" + diirtHome);
             System.setProperty("diirt.home", diirtHome);
+//            Configuration;
+            log.config("Resetting the configuration folder");
+            Configuration.reset();
+            DataSource defaultDataSource = PVManager.getDefaultDataSource();
+            if (defaultDataSource instanceof CompositeDataSource) {
+                PVManager.setDefaultDataSource(DataSourceProvider.createDataSource());
+            }
         } catch (Exception e) {
             log.severe(e.getMessage());
             e.printStackTrace();
