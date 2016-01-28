@@ -21,10 +21,33 @@ import org.eclipse.ui.WorkbenchException;
 /**
  * Attach relevant listeners to workbench components in order that perspective
  * handling can be triggered when an OPIEditor is opened.
+ *
+ * This class could be converted into an abstract class with no dependency on
+ * OPIBuilder, then extended by different classes wanting similar behaviour
+ * that set up state in the constructor.
  */
 public class PerspectiveChecker implements IStartup {
 
     private static Logger log = Logger.getLogger(PerspectiveChecker.class.getName());
+
+    public final String perspectiveID;
+    public final IPreferenceStore prefs;
+    public final String preferenceKey;
+    public final String dialogTitle;
+    public final String dialogMessage;
+    public final String savePreferenceMessage;
+    public final String switchFailedMessage;
+
+    public PerspectiveChecker() {
+        perspectiveID = OPIEditorPerspective.ID;
+        prefs = OPIBuilderPlugin.getDefault().getPreferenceStore();
+        preferenceKey = PreferencesHelper.SWITCH_TO_OPI_EDITOR_PERSPECTIVE;
+        dialogTitle = "Switch to OPI Editor perspective?";
+        dialogMessage = "The OPI Editor perspective contains the tools needed for creating and editing OPIs."
+                + "Would you like to switch to this perspective?";
+        savePreferenceMessage = "Remember my decision";
+        switchFailedMessage = "Failed to change to OPI Editor perspective: ";
+    }
 
     @Override
     public void earlyStartup() {
@@ -43,8 +66,6 @@ public class PerspectiveChecker implements IStartup {
      * <li>Adds an EditorPartListener to any pages
      * <li>Adds an EditorPageListener to the new window
      * </ul>
-     * @author hgs15624
-     *
      */
     private class EditorWindowListener implements IWindowListener {
         @Override
@@ -83,38 +104,55 @@ public class PerspectiveChecker implements IStartup {
      */
     private class EditorPartListener implements IPartListener {
 
+        /**
+         * If the part being opened is an OPIEditor, check the preferences to see
+         * what behaviour has been selected.  If relevant, prompt user and save
+         * associated setting.  Switch perspective depending on preference or user
+         * selection.
+         * @param part part that is being opened
+         */
         @Override
         public void partOpened(IWorkbenchPart part) {
-            checkEditorPerspective(part);
-        }
-
-        private void checkEditorPerspective(IWorkbenchPart part) {
             if (part instanceof OPIEditor) {
                 IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                if (!activeWindow.getActivePage().getPerspective().getId().equals(OPIEditorPerspective.ID)) {
-                    boolean switchPerspectives = true;
-                    IPreferenceStore prefs = OPIBuilderPlugin.getDefault().getPreferenceStore();
-                    if (prefs.getString(PreferencesHelper.SWITCH_TO_OPI_EDITOR_PERSPECTIVE).equals(MessageDialogWithToggle.PROMPT)) {
-                        MessageDialogWithToggle md = MessageDialogWithToggle.openYesNoQuestion(
-                                activeWindow.getShell(),
-                                "Switch to OPI Editor perspective?",
-                                "The OPI Editor perspective contains the tools needed for creating and editing OPIs."
-                                + "Would you like to switch to this perspective?",
-                                "Remember my decision", false,
-                                prefs, PreferencesHelper.SWITCH_TO_OPI_EDITOR_PERSPECTIVE);
-                        if (md.getReturnCode() != IDialogConstants.YES_ID) {
-                            switchPerspectives = false;
+                if (activeWindow != null) {
+                    if (!activeWindow.getActivePage().getPerspective().getId().equals(perspectiveID)) {
+                        boolean switchPerspective = false;
+                        String preferenceSetting = prefs.getString(preferenceKey);
+                        switch (preferenceSetting) {
+                            case MessageDialogWithToggle.PROMPT:
+                                switchPerspective = promptForPerspectiveSwitch(prefs, activeWindow);
+                                break;
+                            case MessageDialogWithToggle.ALWAYS:
+                                switchPerspective = true;
+                                break;
+                            default:
+                                switchPerspective = false;
                         }
-                    }
-                    if (switchPerspectives) {
-                        try {
-                            PlatformUI.getWorkbench().showPerspective(OPIEditorPerspective.ID, activeWindow);
-                        } catch (WorkbenchException we) {
-                            log.warning("Failed to change to OPI Editor perspective: " + we);
+                        if (switchPerspective) {
+                            try {
+                                PlatformUI.getWorkbench().showPerspective(perspectiveID, activeWindow);
+                            } catch (WorkbenchException we) {
+                                log.warning(switchFailedMessage + we);
+                            }
                         }
                     }
                 }
             }
+        }
+
+        /**
+         * Opens dialog to ask user whether to change perspective.  If dialog is selected
+         * the preference will be saved to the specified preference store.
+         * @param prefs IPreferenceStore containing the setting
+         * @param window IWorkbenchWindow on which to centre the dialog
+         * @return whether to change perspective
+         */
+        private boolean promptForPerspectiveSwitch(IPreferenceStore prefs, IWorkbenchWindow window) {
+            MessageDialogWithToggle md = MessageDialogWithToggle.openYesNoQuestion(
+                    window.getShell(), dialogTitle, dialogMessage, savePreferenceMessage, false,
+                    prefs, preferenceKey);
+            return md.getReturnCode() == IDialogConstants.YES_ID;
         }
 
         @Override
