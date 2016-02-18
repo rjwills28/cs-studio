@@ -275,7 +275,7 @@ public class Edm_xyGraphClass extends EdmWidget {
 
 
     public boolean isxShowMinorGrid() {
-        return xShowMajorGrid;
+        return xShowMinorGrid;
     }
 
 
@@ -285,7 +285,7 @@ public class Edm_xyGraphClass extends EdmWidget {
 
 
     public boolean isyShowMinorGrid() {
-        return yShowMajorGrid;
+        return yShowMinorGrid;
     }
 
 
@@ -295,7 +295,7 @@ public class Edm_xyGraphClass extends EdmWidget {
 
 
     public boolean isY2ShowMinorGrid() {
-        return y2ShowMajorGrid;
+        return y2ShowMinorGrid;
     }
 
 
@@ -304,7 +304,7 @@ public class Edm_xyGraphClass extends EdmWidget {
 
 
     public boolean isxShowLabelGrid() {
-        return xShowMajorGrid;
+        return xShowLabelGrid;
     }
 
 
@@ -314,7 +314,7 @@ public class Edm_xyGraphClass extends EdmWidget {
 
 
     public boolean isyShowLabelGrid() {
-        return yShowMajorGrid;
+        return yShowLabelGrid;
     }
 
 
@@ -324,7 +324,7 @@ public class Edm_xyGraphClass extends EdmWidget {
 
 
     public boolean isY2ShowLabelGrid() {
-        return y2ShowMajorGrid;
+        return y2ShowLabelGrid;
     }
 
 
