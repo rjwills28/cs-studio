@@ -426,7 +426,7 @@ public class OPIView extends ViewPart implements IOPIRuntime
     }
 
     @Override
-    public <T> T getAdapter(Class<T> adapter) {
+    public <T> T getAdapter(Class<T> adapter)
     {
         if (opiRuntimeDelegate == null)
             return super.getAdapter(adapter);
