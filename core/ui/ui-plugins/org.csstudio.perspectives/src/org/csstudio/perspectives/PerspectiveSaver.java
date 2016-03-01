@@ -6,7 +6,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -20,14 +19,13 @@ import org.eclipse.e4.ui.model.application.ui.advanced.MPerspective;
 import org.eclipse.e4.ui.model.application.ui.advanced.MPlaceholder;
 import org.eclipse.e4.ui.workbench.UIEvents;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.osgi.service.datalocation.Location;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 
 @SuppressWarnings("restriction")  // This class uses internal e4 API.
 public class PerspectiveSaver implements EventHandler {
-
-    private static final Logger logger = Logger.getLogger(PerspectiveSaver.class.getCanonicalName());
 
     public static final String PERSPECTIVE_PREFIX  = "perspective_";
 
@@ -48,9 +46,7 @@ public class PerspectiveSaver implements EventHandler {
     @Inject
     private IPerspectiveUtils perspectiveUtils;
 
-    private URL url;
-
-    private File resourceDirectory;
+    private File dataDirectory;
 
     /**
      * Create required resources and subscribe to the e4 event broker listening for
@@ -59,14 +55,14 @@ public class PerspectiveSaver implements EventHandler {
     @PostConstruct
     public void init() {
         try {
-            logger.config("Initialising perspective saver.");
-            url = instanceLocation.getDataArea("org.csstudio.startup");
-            resourceDirectory = new File(url.getFile());
-            Files.createDirectories(resourceDirectory.toPath());
+            Plugin.getLogger().config("Initialising perspective saver.");
+            URL dataUri = instanceLocation.getDataArea(Plugin.ID);
+            dataDirectory = new File(dataUri.getFile());
+            Files.createDirectories(dataDirectory.toPath());
             // Subscribe to perspective save events.
             broker.subscribe(UIEvents.UILifeCycle.PERSPECTIVE_SAVED, this);
         } catch (IOException e) {
-            logger.log(Level.WARNING, Messages.PerspectiveSaver_saveFailed, e);
+            Plugin.getLogger().log(Level.WARNING, Messages.PerspectiveSaver_saveFailed, e);
         }
     }
 
@@ -98,19 +94,28 @@ public class PerspectiveSaver implements EventHandler {
                     ph.getPersistedState().putAll(ph.getRef().getPersistedState());
                 }
                 MPerspective clone = (MPerspective) modelService.cloneElement(p, null);
-                String filename = url.getFile() + "/" + PERSPECTIVE_PREFIX  + p.getLabel() + IPerspectiveUtils.XMI_EXTENSION;
-                perspectiveUtils.savePerspective(clone, filename);
+                URI uri = constructUri(clone.getLabel());
+                perspectiveUtils.savePerspective(clone, uri);
                 // The new perspective import and export mechanism will intercept
                 // this preference change and import the perspective for us.
                 // I'm not sure why we need to import explicitly even though the 
                 // perspective has been saved.
                 String perspAsString = perspectiveUtils.perspToString(clone);
-                preferences.put(clone.getLabel() + IPerspectiveUtils.PERSPECTIVE_SUFFIX, perspAsString);
-                logger.config("Saved perspective to " + filename);
+                preferences.put(clone.getLabel() + Plugin.PERSPECTIVE_SUFFIX, perspAsString);
+                Plugin.getLogger().config("Saved perspective to " + uri);
             } catch (IOException e) {
-                logger.log(Level.WARNING, Messages.PerspectiveSaver_saveFailed, e);
+                Plugin.getLogger().log(Level.WARNING, Messages.PerspectiveSaver_saveFailed, e);
             }
         }
+    }
+
+    private URI constructUri(String perspectiveName) {
+        StringBuilder sb = new StringBuilder(Plugin.FILE_PREFIX);
+        sb.append("/");
+        sb.append(PERSPECTIVE_PREFIX);
+        sb.append(perspectiveName);
+        sb.append(Plugin.XMI_EXTENSION);
+        return URI.createURI(sb.toString());
     }
 
 }

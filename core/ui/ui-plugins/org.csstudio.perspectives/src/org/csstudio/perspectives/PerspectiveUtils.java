@@ -20,9 +20,8 @@ public class PerspectiveUtils implements IPerspectiveUtils {
      * @throws IOException
      */
     @Override
-    public void savePerspective(MPerspective persp, String file) throws IOException {
-        URI uri = URI.createURI(IPerspectiveUtils.FILE_PREFIX + file);
-        Resource resource = new E4XMIResourceFactory().createResource(uri);
+    public void savePerspective(MPerspective persp, URI fileUri) throws IOException {
+        Resource resource = new E4XMIResourceFactory().createResource(fileUri);
         resource.getContents().add((EObject) persp);
         resource.save(Collections.EMPTY_MAP);
     }
@@ -32,14 +31,18 @@ public class PerspectiveUtils implements IPerspectiveUtils {
      * @param persp Perspective to convert.
      * @return XML string
      * @throws IOException
+     * @throws IllegalArgumentException if perspective is null
      */
     @Override
     public String perspToString(MPerspective persp) throws IOException {
+        if (persp == null) {
+            throw new IllegalArgumentException("Perspective may not be null");
+        }
         Resource resource = new E4XMIResourceFactory().createResource(null);
         resource.getContents().add((EObject) persp);
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             resource.save(output, null);
-            return new String(output.toByteArray(), ASCII_ENCODING);
+            return new String(output.toByteArray(), Plugin.ASCII_ENCODING);
         }
     }
 }
