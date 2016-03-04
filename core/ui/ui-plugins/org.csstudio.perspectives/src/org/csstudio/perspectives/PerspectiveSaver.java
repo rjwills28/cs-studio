@@ -1,9 +1,8 @@
 package org.csstudio.perspectives;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -24,6 +23,9 @@ import org.eclipse.osgi.service.datalocation.Location;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 
+/**
+ * Class handling saving perspectives to file.
+ */
 @SuppressWarnings("restriction")  // This class uses internal e4 API.
 public class PerspectiveSaver implements EventHandler {
 
@@ -46,7 +48,10 @@ public class PerspectiveSaver implements EventHandler {
     @Inject
     private IPerspectiveUtils perspectiveUtils;
 
-    private File dataDirectory;
+    @Inject
+    private IFileUtils fileUtils;
+
+    private Path dataDirectory;
 
     /**
      * Create required resources and subscribe to the e4 event broker listening for
@@ -55,10 +60,10 @@ public class PerspectiveSaver implements EventHandler {
     @PostConstruct
     public void init() {
         try {
-            Plugin.getLogger().config("Initialising perspective saver.");
-            URL dataUri = instanceLocation.getDataArea(Plugin.ID);
-            dataDirectory = new File(dataUri.getFile());
-            Files.createDirectories(dataDirectory.toPath());
+            URL dataUrl = instanceLocation.getDataArea(Plugin.ID);
+            dataDirectory = fileUtils.urlToPath(dataUrl);
+            fileUtils.createDirectory(dataDirectory);
+            Plugin.getLogger().config("Initialising perspective saver to location " + dataDirectory);
             // Subscribe to perspective save events.
             broker.subscribe(UIEvents.UILifeCycle.PERSPECTIVE_SAVED, this);
         } catch (IOException e) {
@@ -87,14 +92,13 @@ public class PerspectiveSaver implements EventHandler {
         if (o instanceof MPerspective) {
             try {
                 MPerspective p = (MPerspective) o;
-
                 List<MPlaceholder> phs = modelService.findElements(p, null, MPlaceholder.class, null);
                 // Copy persisted state from part to placeholder.
                 for (MPlaceholder ph : phs) {
                     ph.getPersistedState().putAll(ph.getRef().getPersistedState());
                 }
                 MPerspective clone = (MPerspective) modelService.cloneElement(p, null);
-                URI uri = constructUri(clone.getLabel());
+                URI uri = constructUri(instanceLocation.getDataArea(Plugin.ID), clone.getLabel());
                 perspectiveUtils.savePerspective(clone, uri);
                 // The new perspective import and export mechanism will intercept
                 // this preference change and import the perspective for us.
@@ -109,13 +113,14 @@ public class PerspectiveSaver implements EventHandler {
         }
     }
 
-    private URI constructUri(String perspectiveName) {
-        StringBuilder sb = new StringBuilder(Plugin.FILE_PREFIX);
-        sb.append("/");
-        sb.append(PERSPECTIVE_PREFIX);
-        sb.append(perspectiveName);
-        sb.append(Plugin.XMI_EXTENSION);
-        return URI.createURI(sb.toString());
+    URI constructUri(URL dataArea, String perspectiveName) {
+        if (dataArea == null || perspectiveName == null) {
+            throw new NullPointerException("Arguments to constructUri may not be null.");
+        }
+        URI uri = fileUtils.urlToEmfUri(dataArea);
+        uri = uri.appendSegment(PERSPECTIVE_PREFIX + perspectiveName);
+        uri = uri.appendFileExtension(Plugin.XMI_EXTENSION);
+        return uri;
     }
 
 }

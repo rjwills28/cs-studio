@@ -13,12 +13,21 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "org.csstudio.perspectives.messages"; //$NON-NLS-1$
 
+    public static String FileUtils_selectFile;
+
+    public static String PerspectiveLoader_loadFailed;
+    public static String PerspectiveLoader_loadedPerspective;
+    public static String PerspectiveLoader_fileNotUnderstood;
+
+    public static String PerspectivesPreferencePage_pageTitle;
+    public static String PerspectivesPreferencePage_pageMessage;
+    public static String PerspectivesPreferencePage_fieldText;
+    public static String PerspectivesPreferencePage_fieldTooltip;
+
     public static String PerspectiveSaver_initFailed;
     public static String PerspectiveSaver_saveFailed;
 
-    public static String PerspectiveLoader_selectFile;
-    public static String PerspectiveLoader_loadFailed;
-    public static String PerspectiveLoader_fileNotUnderstood;
+    public static String PerspectiveStartup_startupLoadFailed;
 
     static {
         // initialize resource bundle
