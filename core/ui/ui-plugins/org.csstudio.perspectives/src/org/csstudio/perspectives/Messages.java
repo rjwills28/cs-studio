@@ -19,7 +19,7 @@ public class Messages extends NLS {
     public static String PerspectiveLoader_loadedPerspective;
     public static String PerspectiveLoader_fileNotUnderstood;
 
-    public static String PerspectivesPreferencePage_pageTitle;
+    public static String PerspectivesPreferencePage_pageDescription;
     public static String PerspectivesPreferencePage_pageMessage;
     public static String PerspectivesPreferencePage_fieldText;
     public static String PerspectivesPreferencePage_fieldTooltip;
@@ -27,6 +27,7 @@ public class Messages extends NLS {
     public static String PerspectiveSaver_initFailed;
     public static String PerspectiveSaver_saveFailed;
 
+    public static String PerspectiveStartup_startupDirNotFound;
     public static String PerspectiveStartup_startupLoadFailed;
 
     static {

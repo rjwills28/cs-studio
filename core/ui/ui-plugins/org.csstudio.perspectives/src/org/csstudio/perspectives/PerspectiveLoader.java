@@ -17,6 +17,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * Class handling loading of perspectives from .xmi files.
@@ -39,8 +40,8 @@ public class PerspectiveLoader {
      * string.  Put into preferences; this triggers the new perspective import mechanism
      * in Eclipse 4.5.2 which imports the perspective properly.
      */
-    public void promptAndLoadPerspective() {
-        Path selectedFile = fileUtils.promptForFile(null, Plugin.XMI_EXTENSION);
+    public void promptAndLoadPerspective(Shell parent) {
+        Path selectedFile = fileUtils.promptForFile(null, Plugin.XMI_EXTENSION, parent);
         if (selectedFile != null && Files.isRegularFile(selectedFile)) {
             URI fileUri = fileUtils.pathToEmfUri(selectedFile);
             loadPerspective(fileUri);
@@ -60,7 +61,7 @@ public class PerspectiveLoader {
         if (obj instanceof MPerspective) {
             MPerspective p = (MPerspective) obj;
             try {
-                String perspAsString = perspectiveUtils.perspToString(p);
+                String perspAsString = perspectiveUtils.perspectiveToString(p);
                 // The new perspective import and export mechanism will intercept
                 // this preference change and import the perspective for us.
                 preferences.put(p.getLabel() + Plugin.PERSPECTIVE_SUFFIX, perspAsString);

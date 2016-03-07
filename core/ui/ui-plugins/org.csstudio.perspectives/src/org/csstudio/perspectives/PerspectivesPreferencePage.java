@@ -61,8 +61,8 @@ public class PerspectivesPreferencePage extends FieldEditorPreferencePage
                     }
                 }
                 String dir = dialog.open();
-                String dirUri = fileUtils.stringPathToUriFileString(dir);
-                if (dirUri != null) {
+                if (dir != null) {
+                    String dirUri = fileUtils.stringPathToUriFileString(dir);
                     dirUri = dirUri.trim();
                     if (dirUri.length() == 0) {
                         return null;
@@ -80,7 +80,7 @@ public class PerspectivesPreferencePage extends FieldEditorPreferencePage
     public void init(IWorkbench workbench) {
         store = new ScopedPreferenceStore(InstanceScope.INSTANCE, ID);
         setPreferenceStore(store);
-        setDescription(Messages.PerspectivesPreferencePage_pageTitle);
+        setDescription(Messages.PerspectivesPreferencePage_pageDescription);
     }
 
     @Override
