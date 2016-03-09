@@ -1,7 +1,6 @@
 package org.csstudio.perspectives;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
@@ -11,6 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.ui.internal.workbench.E4Workbench;
@@ -38,6 +38,9 @@ public class PerspectiveSaver implements EventHandler {
     private EModelService modelService;
 
     @Inject
+    private IPreferencesService prefs;
+
+    @Inject
     @Preference(nodePath = "org.eclipse.ui.workbench")
     private IEclipsePreferences preferences;
 
@@ -51,29 +54,18 @@ public class PerspectiveSaver implements EventHandler {
     @Inject
     private IFileUtils fileUtils;
 
-    private Path dataDirectory;
-
     /**
-     * Create required resources and subscribe to the e4 event broker listening for
-     * perspective save events.
+     * Subscribe to the e4 event broker listening for perspective save events.
      */
     @PostConstruct
     public void init() {
-        try {
-            URL dataUrl = instanceLocation.getDataArea(Plugin.ID);
-            dataDirectory = fileUtils.urlToPath(dataUrl);
-            fileUtils.createDirectory(dataDirectory);
-            Plugin.getLogger().config("Initialising perspective saver to location " + dataDirectory);
-            // Subscribe to perspective save events.
-            broker.subscribe(UIEvents.UILifeCycle.PERSPECTIVE_SAVED, this);
-        } catch (IOException e) {
-            Plugin.getLogger().log(Level.WARNING, Messages.PerspectiveSaver_saveFailed, e);
-        }
+        // Subscribe to perspective save events.
+        broker.subscribe(UIEvents.UILifeCycle.PERSPECTIVE_SAVED, this);
     }
-
 
     /**
      * When a perspective is saved by a user, save it also to a file in .xmi format.
+     * Only do this if the relevant preference setting is present.
      *
      * Importantly, it is necessary to save any persisted state from an MPart into
      * the corresponding MPlaceholder in the perspective.  This allows OPIView to
@@ -91,36 +83,52 @@ public class PerspectiveSaver implements EventHandler {
         Object o = event.getProperty(UIEvents.EventTags.ELEMENT);
         if (o instanceof MPerspective) {
             try {
-                MPerspective p = (MPerspective) o;
-                List<MPlaceholder> phs = modelService.findElements(p, null, MPlaceholder.class, null);
-                // Copy persisted state from part to placeholder.
-                for (MPlaceholder ph : phs) {
-                    ph.getPersistedState().putAll(ph.getRef().getPersistedState());
+                Path saveDir = getSaveDirectory();
+                if (saveDir != null) {
+                    savePerspectiveToDirectory((MPerspective) o, saveDir);
                 }
-                MPerspective clone = (MPerspective) modelService.cloneElement(p, null);
-                URI uri = constructUri(instanceLocation.getDataArea(Plugin.ID), clone.getLabel());
-                perspectiveUtils.savePerspective(clone, uri);
-                // The new perspective import and export mechanism will intercept
-                // this preference change and import the perspective for us.
-                // I'm not sure why we need to import explicitly even though the 
-                // perspective has been saved.
-                String perspAsString = perspectiveUtils.perspectiveToString(clone);
-                preferences.put(clone.getLabel() + Plugin.PERSPECTIVE_SUFFIX, perspAsString);
-                Plugin.getLogger().config("Saved perspective to " + uri);
             } catch (IOException e) {
                 Plugin.getLogger().log(Level.WARNING, Messages.PerspectiveSaver_saveFailed, e);
             }
         }
     }
 
-    URI constructUri(URL dataArea, String perspectiveName) {
+    private void savePerspectiveToDirectory(MPerspective p, Path saveDir) throws IOException {
+        List<MPlaceholder> phs = modelService.findElements(p, null, MPlaceholder.class, null);
+        // Copy persisted state from part to placeholder.
+        for (MPlaceholder ph : phs) {
+            ph.getPersistedState().putAll(ph.getRef().getPersistedState());
+        }
+        MPerspective clone = (MPerspective) modelService.cloneElement(p, null);
+        URI uri = constructUri(saveDir, clone.getLabel());
+        perspectiveUtils.savePerspective(clone, uri);
+        // The new perspective import and export mechanism will intercept
+        // this preference change and import the perspective for us.
+        // I'm not sure why we need to import explicitly even though the
+        // perspective has been saved.
+        String perspAsString = perspectiveUtils.perspectiveToString(clone);
+        preferences.put(clone.getLabel() + Plugin.PERSPECTIVE_SUFFIX, perspAsString);
+        Plugin.getLogger().config("Saved perspective to " + uri);
+    }
+
+    URI constructUri(Path dataArea, String perspectiveName) {
         if (dataArea == null || perspectiveName == null) {
             throw new NullPointerException("Arguments to constructUri may not be null.");
         }
-        URI uri = fileUtils.urlToEmfUri(dataArea);
+        URI uri = fileUtils.pathToEmfUri(dataArea);
         uri = uri.appendSegment(PERSPECTIVE_PREFIX + perspectiveName);
         uri = uri.appendFileExtension(Plugin.XMI_EXTENSION);
         return uri;
+    }
+
+    Path getSaveDirectory() throws IOException {
+        String saveDirPreference = prefs.getString(PerspectivesPreferencePage.ID,
+                PerspectivesPreferencePage.PERSPECTIVE_SAVE_DIRECTORY, null, null);
+        Path saveDir = null;
+        if (saveDirPreference != null) {
+            saveDir = fileUtils.stringPathToPath(saveDirPreference);
+        }
+        return saveDir;
     }
 
 }

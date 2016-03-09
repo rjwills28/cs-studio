@@ -7,15 +7,9 @@
  ******************************************************************************/
 package org.csstudio.perspectives;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.StringButtonFieldEditor;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
@@ -26,13 +20,13 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class PerspectivesPreferencePage extends FieldEditorPreferencePage
         implements IWorkbenchPreferencePage {
 
-    public static final String PERSPECTIVE_LOAD_DIRECTORY = "perspective_load_dir";
     public static final String ID = "org.csstudio.perspectives.preferences";
+    public static final String PERSPECTIVE_LOAD_DIRECTORY = "perspective_load_dir";
+    public static final String PERSPECTIVE_SAVE_DIRECTORY = "perspective_save_dir";
     public static final String FILE_PREFIX = "file:";
 
     private IFileUtils fileUtils = new FileUtils();
 
-    private StringButtonFieldEditor perspectivesDirEditor;
     private ScopedPreferenceStore store;
 
     public PerspectivesPreferencePage() {
@@ -44,36 +38,18 @@ public class PerspectivesPreferencePage extends FieldEditorPreferencePage
     @Override
     protected void createFieldEditors() {
         final Composite parent = getFieldEditorParent();
-        perspectivesDirEditor = new StringButtonFieldEditor(PERSPECTIVE_LOAD_DIRECTORY, Messages.PerspectivesPreferencePage_fieldText, parent) {
-            private String lastPath = store.getString(PERSPECTIVE_LOAD_DIRECTORY);
-
-            @Override
-            protected String changePressed() {
-                DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.SHEET);
-                if (lastPath != null) {
-                    try {
-                        if (new File(lastPath).exists()) {
-                            File lastDir = new File(lastPath);
-                            dialog.setFilterPath(lastDir.getCanonicalPath());
-                        }
-                    } catch (IOException e) {
-                        dialog.setFilterPath(lastPath);
-                    }
-                }
-                String dir = dialog.open();
-                if (dir != null) {
-                    String dirUri = fileUtils.stringPathToUriFileString(dir);
-                    dirUri = dirUri.trim();
-                    if (dirUri.length() == 0) {
-                        return null;
-                    }
-                    lastPath = dirUri;
-                }
-                return dir;
-            }
-        };
-        perspectivesDirEditor.getTextControl(parent).setToolTipText(Messages.PerspectivesPreferencePage_fieldTooltip);
-        addField(perspectivesDirEditor);
+        String lastLoadPath = store.getString(PERSPECTIVE_LOAD_DIRECTORY);
+        SelectDirectoryFieldEditor perspectiveLoadDirEditor = new
+                SelectDirectoryFieldEditor(PERSPECTIVE_LOAD_DIRECTORY,
+                        Messages.PerspectivesPreferencePage_loadText, parent, lastLoadPath, fileUtils);
+        perspectiveLoadDirEditor.getTextControl(parent).setToolTipText(Messages.PerspectivesPreferencePage_loadTooltip);
+        addField(perspectiveLoadDirEditor);
+        String lastSavePath = store.getString(PERSPECTIVE_SAVE_DIRECTORY);
+        SelectDirectoryFieldEditor perspectiveSaveDirEditor = new
+                SelectDirectoryFieldEditor(PERSPECTIVE_SAVE_DIRECTORY,
+                        Messages.PerspectivesPreferencePage_saveText, parent, lastSavePath, fileUtils);
+        perspectiveSaveDirEditor.getTextControl(parent).setToolTipText(Messages.PerspectivesPreferencePage_saveTooltip);
+        addField(perspectiveSaveDirEditor);
     }
 
     @Override
