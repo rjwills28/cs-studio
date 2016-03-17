@@ -22,7 +22,7 @@ public class Opi_TwoDProfileMonitorClass extends OpiWidget {
             .getLogger("org.csstudio.opibuilder.converter.writer.Edm_TwoDProfileMonitorClass");
     private static final String typeId = "dawn.intensitygraph";
     private static final String name = "EDM Edm_TwoDProfileMonitorClass";
-    private static final String version = "1.0";
+    private static final String version = "1.1";
 
     /**
      * Converts the Edm_TwoDProfileMonitorClass to OPI Dawn IntensityGraph XML.
