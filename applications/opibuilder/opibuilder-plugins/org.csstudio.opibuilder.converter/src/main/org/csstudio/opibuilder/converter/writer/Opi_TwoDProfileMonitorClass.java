@@ -25,7 +25,7 @@ public class Opi_TwoDProfileMonitorClass extends OpiWidget {
     private static final String version = "1.0";
 
     /**
-     * Converts the Edm_TwoDProfileMonitorClass to OPI Rectangle widget XML.
+     * Converts the Edm_TwoDProfileMonitorClass to OPI Dawn IntensityGraph XML.
      */
     public Opi_TwoDProfileMonitorClass(Context con, Edm_TwoDProfileMonitorClass r) {
         super(con, r);
