@@ -42,6 +42,10 @@ public class Opi_TwoDProfileMonitorClass extends OpiWidget {
         new OpiBoolean(widgetContext, "x_axis_visible", false);
         new OpiBoolean(widgetContext, "y_axis_visible", false);
 
+        // Assume all IntesityGraphs will be plotting U8 (i.e. CHAR) data.
+        // This is standard in EDM
+        new OpiBoolean(widgetContext, "unsigned", true);
+        new OpiInt(widgetContext, "unsigned_bits", 8);
 
         if(r.getDataPvStr()!=null)
             new OpiString(widgetContext, "pv_name", convertPVName(r.getDataPvStr()));
