@@ -35,9 +35,6 @@ public final class AdvancedDbFileExporter implements IExporter {
         this.renderEmptyFields = renderEmptyFields;
     }
 
-    /**
-     *{@inheritDoc}
-     */
     public String render(IRecord record) {
 
         StringBuffer sb = new StringBuffer();
@@ -82,6 +79,10 @@ public final class AdvancedDbFileExporter implements IExporter {
         return sb.toString();
     }
 
+    /**
+     *{@inheritDoc}
+     */
+    @Override
     public String export(IProject project) {
         StringBuffer sb = new StringBuffer();
         for (IRecord r : project.getFinalRecords()) {

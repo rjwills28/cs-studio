@@ -25,6 +25,7 @@ public final class DataLinkFieldFunction implements IFieldFunction {
     /**
      *{@inheritDoc}
      */
+    @Override
     public String evaluate(String name, String[] parameters, IRecord record, String fieldName) throws Exception {
         IRecord r = RecordFinder.findRecordByPath(parameters[0], record.getContainer());
 
@@ -53,6 +54,7 @@ public final class DataLinkFieldFunction implements IFieldFunction {
         return result;
     }
 
+    @Override
     public List<IContentProposal> getParameterProposal(int parameterIndex, String[] knowParameters, IRecord record) {
         List<IContentProposal> result = new ArrayList<IContentProposal>();
 
