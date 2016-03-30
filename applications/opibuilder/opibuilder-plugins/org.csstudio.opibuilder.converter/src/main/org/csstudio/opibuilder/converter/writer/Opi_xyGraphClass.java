@@ -43,6 +43,20 @@ public class Opi_xyGraphClass extends OpiWidget {
     private static final int STYLE_SQUARE = 6;
     private static final int STYLE_DIAMOND = 8;
 
+    private static final String TRACE_I_UPDATE_DELAY = "trace_%d_update_delay";
+    private static final String TRACE_I_CONCATENATE_DATA = "trace_%d_concatenate_data";
+
+    private static final String TRACE_N_X_PV = "trace_%s_x_pv";
+    private static final String TRACE_N_Y_PV = "trace_%s_y_pv";
+    private static final String TRACE_N_TRACE_COLOR = "trace_%s_trace_color";
+    private static final String TRACE_N_TRACE_TYPE = "trace_%s_trace_type";
+    private static final String TRACE_N_POINT_STYLE = "trace_%s_point_style";
+    private static final String TRACE_N_POINT_SIZE = "trace_%s_point_size";
+    private static final String TRACE_N_BUFFER_SIZE = "trace_%s_buffer_size";
+    private static final String TRACE_N_LINE_WIDTH = "trace_%s_line_width";
+    private static final String TRACE_N_Y_AXIS_INDEX = "trace_%s_y_axis_index";
+    private static final String TRACE_N_UPDATE_MODE = "trace_%s_update_mode";
+
     /**
      * Converts the Edm_activeRectangleClass to OPI Rectangle widget XML.
      */
@@ -56,25 +70,13 @@ public class Opi_xyGraphClass extends OpiWidget {
 
         new OpiInt(widgetContext, "axis_count", 3); // axis count
         // Title
-        if (r.getGraphTitle() != null)
+        if (r.getGraphTitle() != null) {
             new OpiString(widgetContext, "title", r.getGraphTitle());
-        // There's no way to turn off axis labels, so if we don't want one,
-        // set it to ""
-        if (r.getXLabel() != null) {
-            new OpiString(widgetContext, "axis_0_axis_title", r.getXLabel());
-        } else {
-            new OpiString(widgetContext, "axis_0_axis_title", "");
         }
-        if (r.getYLabel() != null) {
-            new OpiString(widgetContext, "axis_1_axis_title", r.getYLabel());
-        } else {
-            new OpiString(widgetContext, "axis_1_axis_title", "");
-        }
-        if (r.getY2Label() != null) {
-            new OpiString(widgetContext, "axis_2_axis_title", r.getY2Label());
-        } else {
-            new OpiString(widgetContext, "axis_2_axis_title", "");
-        }
+
+        setAxisLabelProperty("axis_0_axis_title", r.getXLabel());
+        setAxisLabelProperty("axis_1_axis_title", r.getYLabel());
+        setAxisLabelProperty("axis_2_axis_title", r.getY2Label());
 
         new OpiBoolean(widgetContext, "axis_2_left_bottom_side", false);
 
@@ -170,21 +172,21 @@ public class Opi_xyGraphClass extends OpiWidget {
 
         // Don't assume defaults are true or false
         if(r.getxAxisSrc()!=null && r.getxAxisSrc().equals("AutoScale")) {
-            new OpiBoolean(widgetContext, "axis_0_auto_scale",    true);
+            new OpiBoolean(widgetContext, "axis_0_auto_scale", true);
         } else {
-            new OpiBoolean(widgetContext, "axis_0_auto_scale",    false);
+            new OpiBoolean(widgetContext, "axis_0_auto_scale", false);
         }
 
         if(r.getyAxisSrc()!=null && r.getyAxisSrc().equals("AutoScale")) {
-            new OpiBoolean(widgetContext, "axis_1_auto_scale",    true);
+            new OpiBoolean(widgetContext, "axis_1_auto_scale", true);
         } else {
-            new OpiBoolean(widgetContext, "axis_1_auto_scale",    false);
+            new OpiBoolean(widgetContext, "axis_1_auto_scale", false);
         }
 
         if(r.getY2AxisSrc()!=null && r.getY2AxisSrc().equals("AutoScale")) {
-            new OpiBoolean(widgetContext, "axis_2_auto_scale",    true);
+            new OpiBoolean(widgetContext, "axis_2_auto_scale", true);
         } else {
-            new OpiBoolean(widgetContext, "axis_2_auto_scale",    false);
+            new OpiBoolean(widgetContext, "axis_2_auto_scale", false);
         }
 
         if(r.getxAxisStyle()!=null && r.getxAxisStyle().equals("log10")) {
@@ -207,61 +209,66 @@ public class Opi_xyGraphClass extends OpiWidget {
         // PV X,Y
         if (r.getXPv().isExistInEDL()) {
             for (Entry<String, EdmString>  entry: r.getXPv().getEdmAttributesMap().entrySet()) {
-                new OpiString(widgetContext, "trace_" + entry.getKey()+ "_x_pv", entry.getValue());
+                new OpiString(widgetContext, String.format(TRACE_N_X_PV, entry.getKey()), entry.getValue());
             }
 
         }
-        for(int i=0; i<r.getNumTraces(); i++){
+
+        for(int i = 0; i < r.getNumTraces(); i++){
+            new OpiInt(widgetContext, String.format(TRACE_I_UPDATE_DELAY, i), r.getUpdateTimerMs());
             //give it a big buffer if it is waveform, edm will show all waveform values regardless nPts.
-            new OpiInt(widgetContext, "trace_"+i+"_buffer_size", r.getnPts());
-            new OpiInt(widgetContext, "trace_"+i+"_update_delay", r.getUpdateTimerMs());
-            if(r.getPlotMode()==null && r.getnPts()<5){//assume it is a waveform
-                new OpiBoolean(widgetContext, "trace_"+i+"_concatenate_data", false);
-                new OpiInt(widgetContext, "trace_"+i+"_buffer_size", 65536);
+            if (r.getPlotMode() == null && r.getnPts() < 5){ //assume it is a waveform
+                new OpiBoolean(widgetContext, String.format(TRACE_I_CONCATENATE_DATA, i), false);
+                new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), 65536);
+            } else {
+                new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), r.getnPts());
             }
         }
 
 
         if (r.getYPv().isExistInEDL()) {
             for (Entry<String, EdmString> entry : r.getYPv().getEdmAttributesMap().entrySet()) {
-                new OpiString(widgetContext, "trace_" + entry.getKey() + "_y_pv", entry.getValue());
+                new OpiString(widgetContext, String.format(TRACE_N_Y_PV, entry.getKey()), entry.getValue());
             }
         }
 
         if (r.getPlotColor().isExistInEDL()) {
             for (Entry<String, EdmColor> entry : r.getPlotColor().getEdmAttributesMap().entrySet()) {
-                new OpiColor(widgetContext, "trace_" + entry.getKey() + "_trace_color",
-                        entry.getValue(), r);
+                new OpiColor(widgetContext, String.format(TRACE_N_TRACE_COLOR, entry.getKey()), entry.getValue(), r);
             }
         }
 
         if(r.getPlotStyle().isExistInEDL()){
             for (Entry<String, EdmString> entry : r.getPlotStyle().getEdmAttributesMap().entrySet()) {
-                if(entry.getValue().get().equals("needle")){
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", BAR);
-                }else if (entry.getValue().get().equals("point")){
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", POINT);
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_point_style", STYLE_POINT);
+                final String value = entry.getValue().get();
+                final String key = entry.getKey();
+
+                if(value.equals("needle")){
+                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), BAR);
+                } else if (value.equals("point")) {
+                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), POINT);
+                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, key), STYLE_POINT);
                     // EDM point graphs are always one pixel
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_point_size", 1);
-                }else if (entry.getValue().get().equals("single point")){
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", POINT);
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_buffer_size", 1);
-                }else{
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", SOLID_LINE);
+                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_SIZE, key), 1);
+                } else if (value.equals("single point")) {
+                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), POINT);
+                    new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, key), 1);
+                } else {
+                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), SOLID_LINE);
                 }
             }
         }
 
         if(r.getLineThickness().isExistInEDL()){
             for (Entry<String, EdmInt> entry : r.getLineThickness().getEdmAttributesMap().entrySet())
-                new OpiInt(widgetContext, "trace_"+entry.getKey() + "_line_width", entry.getValue().get());
+                new OpiInt(widgetContext,
+                        String.format(TRACE_N_LINE_WIDTH, entry.getKey()), entry.getValue().get());
         }
 
         if (r.getLineStyle().isExistInEDL()) {
             for (Entry<String, EdmString> entry : r.getLineStyle().getEdmAttributesMap().entrySet()) {
                 if (entry.getValue().get().equals("dash")) {
-                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_trace_type", DASH_LINE);
+                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, entry.getKey()), DASH_LINE);
                 }
             }
         }
@@ -276,7 +283,7 @@ public class Opi_xyGraphClass extends OpiWidget {
                 }else if (entry.getValue().get().equals("diamond")) {
                     style = STYLE_DIAMOND;
                 }
-                new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_style", style);
+                new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, entry.getKey()), style);
             }
         }
 
@@ -284,10 +291,13 @@ public class Opi_xyGraphClass extends OpiWidget {
             for (Entry<String, EdmString> entry : r.getOpMode().getEdmAttributesMap().entrySet()) {
                 //EDM will sort the data in this mode where BOY cannot, so plot it as points
                 if (entry.getValue().get().equals("plot")) {
-                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_trace_type", POINT);
-                    if(!r.getPlotSymbolType().getEdmAttributesMap().containsKey(entry.getKey()))
-                        new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_style", STYLE_POINT);
-                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_size", 2);
+                    final String key = entry.getKey();
+                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), POINT);
+
+                    if (!r.getPlotSymbolType().getEdmAttributesMap().containsKey(key)) {
+                        new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, key), STYLE_POINT);
+                    }
+                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_SIZE, key), 2);
                 }
             }
         }
@@ -307,19 +317,35 @@ public class Opi_xyGraphClass extends OpiWidget {
                     mode = 4;
                 }
 
-                new OpiInt(widgetContext, "trace_" + entry.getKey() + "_update_mode", mode);
+                new OpiInt(widgetContext, String.format(TRACE_N_UPDATE_MODE, entry.getKey()), mode);
             }
         }
-
 
         if(r.getUseY2Axis().isExistInEDL()){
             for (Entry<String, EdmBoolean> entry : r.getUseY2Axis().getEdmAttributesMap().entrySet()) {
                 if(entry.getValue().is())
-                    new OpiInt(widgetContext, "trace_"+entry.getKey()+"_y_axis_index", 2);
+                    new OpiInt(widgetContext, String.format(TRACE_N_Y_AXIS_INDEX, entry.getKey()), 2);
             }
         }
 
         log.config("Edm_xyGraphClass written.");
+    }
+
+    /**
+     * Set the string property of an axis label.
+     *
+     * There's no way to turn off axis labels, so if we don't want one (i.e.
+     * where the EDM label is null, set it to ""
+     *
+     * @param property Name of property to set
+     * @param axisLabel Axis label to use (may be NULL)
+     */
+    private void setAxisLabelProperty(String property, String axisLabel) {
+        if (axisLabel != null) {
+            new OpiString(widgetContext, property, axisLabel);
+        } else {
+            new OpiString(widgetContext, property, "");
+        }
     }
 
 }
