@@ -29,6 +29,20 @@ public class Opi_xyGraphClass extends OpiWidget {
     private static final String name = "EDM xyGraph";
     private static final String version = "1.0";
 
+    // These are copied from the dawnxygraph:
+    //  org.eclipse.nebula.visualization.xygraph.figures.Trace
+    // Duplicated rather than imported to reduce the dependencies of the converter
+    private static final int SOLID_LINE = 0;
+    private static final int DASH_LINE = 1;
+    private static final int POINT = 2;
+    private static final int BAR = 3;
+
+    private static final int STYLE_NONE = 0;
+    private static final int STYLE_POINT = 1;
+    private static final int STYLE_CIRCLE = 2;
+    private static final int STYLE_SQUARE = 6;
+    private static final int STYLE_DIAMOND = 8;
+
     /**
      * Converts the Edm_activeRectangleClass to OPI Rectangle widget XML.
      */
@@ -224,17 +238,17 @@ public class Opi_xyGraphClass extends OpiWidget {
         if(r.getPlotStyle().isExistInEDL()){
             for (Entry<String, EdmString> entry : r.getPlotStyle().getEdmAttributesMap().entrySet()) {
                 if(entry.getValue().get().equals("needle")){
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", 3);
+                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", BAR);
                 }else if (entry.getValue().get().equals("point")){
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", 2);
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_point_style", 1);
+                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", POINT);
+                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_point_style", STYLE_POINT);
                     // EDM point graphs are always one pixel
                     new OpiInt(widgetContext, "trace_"+entry.getKey() + "_point_size", 1);
                 }else if (entry.getValue().get().equals("single point")){
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", 2);
+                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", POINT);
                     new OpiInt(widgetContext, "trace_"+entry.getKey() + "_buffer_size", 1);
                 }else{
-                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", 0);
+                    new OpiInt(widgetContext, "trace_"+entry.getKey() + "_trace_type", SOLID_LINE);
                 }
             }
         }
@@ -247,21 +261,22 @@ public class Opi_xyGraphClass extends OpiWidget {
         if (r.getLineStyle().isExistInEDL()) {
             for (Entry<String, EdmString> entry : r.getLineStyle().getEdmAttributesMap().entrySet()) {
                 if (entry.getValue().get().equals("dash")) {
-                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_trace_type", 1);
+                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_trace_type", DASH_LINE);
                 }
             }
         }
+
         if(r.getPlotSymbolType().isExistInEDL()){
             for (Entry<String, EdmString> entry : r.getPlotSymbolType().getEdmAttributesMap().entrySet()) {
-                int m = 0;
+                int style = STYLE_NONE;
                 if (entry.getValue().get().equals("circle")) {
-                    m=2;
+                    style = STYLE_CIRCLE;
                 }else if (entry.getValue().get().equals("square")) {
-                    m=5;
+                    style = STYLE_SQUARE;
                 }else if (entry.getValue().get().equals("diamond")) {
-                    m=7;
+                    style = STYLE_DIAMOND;
                 }
-                new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_style", m);
+                new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_style", style);
             }
         }
 
@@ -269,9 +284,9 @@ public class Opi_xyGraphClass extends OpiWidget {
             for (Entry<String, EdmString> entry : r.getOpMode().getEdmAttributesMap().entrySet()) {
                 //EDM will sort the data in this mode where BOY cannot, so plot it as points
                 if (entry.getValue().get().equals("plot")) {
-                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_trace_type", 2);
+                    new OpiInt(widgetContext, "trace_" + entry.getKey() + "_trace_type", POINT);
                     if(!r.getPlotSymbolType().getEdmAttributesMap().containsKey(entry.getKey()))
-                        new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_style", 1);
+                        new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_style", STYLE_POINT);
                     new OpiInt(widgetContext, "trace_" + entry.getKey() + "_point_size", 2);
                 }
             }
@@ -279,16 +294,20 @@ public class Opi_xyGraphClass extends OpiWidget {
 
         if(r.getPlotUpdateMode().isExistInEDL()){
             for (Entry<String, EdmString> entry : r.getPlotUpdateMode().getEdmAttributesMap().entrySet()) {
-                int m = 1;
-                if (entry.getValue().get().equals("xOrY")) {
-                    m=0;
-                }else if (entry.getValue().get().equals("x")) {
-                    m=2;
-                }else if (entry.getValue().get().equals("y")) {
-                    m=3;
-                }else if (entry.getValue().get().equals("trigger"))
-                    m=4;
-                new OpiInt(widgetContext, "trace_" + entry.getKey() + "_update_mode", m);
+                final String value = entry.getValue().get();
+
+                int mode = 1;
+                if (value.equals("xOrY")) {
+                    mode = 0;
+                }else if (value.equals("x")) {
+                    mode = 2;
+                }else if (value.equals("y")) {
+                    mode = 3;
+                }else if (value.equals("trigger")) {
+                    mode = 4;
+                }
+
+                new OpiInt(widgetContext, "trace_" + entry.getKey() + "_update_mode", mode);
             }
         }
 
