@@ -8,7 +8,7 @@
 
     <body>
         <h1>Beast DataSource</h1>
-    
+
         <h2>Overview</h2>
         <p>
         The Alarm System allow users to view and handle the alarms
@@ -24,20 +24,20 @@
         This makes it possible for user to access beast alarm information of any other cs-studio application.
         OPI screens can now embeded information about weather of not an alarm has been acknowledged, etc..       
         </p>
-         
+
         <h2>PV syntax</h2>
         The standard prefix for the datasource is <code>beast://</code> which can be omitted if configured as the default datasource.
         <p>
         'beast' pvs can be used to connect to any node or leaf from the alarm tree. 
         The alarm tree represents the configured hierarchy of the alarm pv's, the hierarchy consists of 
-        
+
         <ol>
         <li>Area: Front end, DTL, CCL, SCL, Ring, ...</li>
         <li>System: ICS, Cooling, Vacuum, RF, ...</li>
         <li>Optionally sub-system: ICS/IOCs, RF/LLRF, RF/HPRF, ...</li>
         <li>Alarm Trigger PVs on the final level.</li>
         </ol>
-         
+
         <p>
         You can create a beast channel for any Alarm Trigger PVs or for any Area, System, Subsystem.
         </p>
@@ -50,12 +50,12 @@
         <li>Example1: Connecting to a alarm pv</li>
         <img src="alarm_pv_trigger.png" />
         </p>
-        
+
         <p>
         <li>Example2: Connecting to a subsystem defined in the alarm tree</li>
         <img src="alarm_system.png" />
         </p>
-        
+
         <h3>Interpreting the beast datasource result</h3>
         <p>Each active alarm has several properties:</p>
         <ul>
