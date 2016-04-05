@@ -242,7 +242,7 @@ public class Opi_xyGraphClass extends OpiWidget {
             for (Entry<String, EdmString> entry : r.getPlotStyle().getEdmAttributesMap().entrySet()) {
                 final String value = entry.getValue().get();
                 final String key = entry.getKey();
-
+                System.out.println(key + ": " + value);
                 if(value.equals("needle")){
                     new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), BAR);
                 } else if (value.equals("point")) {
@@ -275,6 +275,8 @@ public class Opi_xyGraphClass extends OpiWidget {
 
         if(r.getPlotSymbolType().isExistInEDL()){
             for (Entry<String, EdmString> entry : r.getPlotSymbolType().getEdmAttributesMap().entrySet()) {
+
+                System.out.println(entry.getValue().get());
                 int style = STYLE_NONE;
                 if (entry.getValue().get().equals("circle")) {
                     style = STYLE_CIRCLE;
