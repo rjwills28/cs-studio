@@ -1,0 +1,206 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 614
+y 278
+w 280
+h 177
+font "helvetica-bold-r-14.0"
+ctlFont "helvetica-bold-r-14.0"
+btnFont "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 3
+textColor index 14
+ctlFgColor1 index 25
+ctlFgColor2 index 30
+ctlBgColor1 index 3
+ctlBgColor2 index 3
+topShadowColor index 1
+botShadowColor index 11
+title "Motor control"
+showGrid
+gridSize 5
+disableScroll
+endScreenProperties
+
+# (X-Y Graph)
+object xyGraphClass
+beginObjectProperties
+major 4
+minor 8
+release 0
+# Geometry
+x 8
+y 96
+w 992
+h 280
+# Appearance
+graphTitle "BPM Line"
+xLabel "BPM ID"
+yLabel "mm"
+fgColor index 14
+bgColor index 3
+gridColor index 14
+font "helvetica-medium-r-12.0"
+# Operating Modes
+nPts 1
+# X axis properties
+showXAxis
+xAxisSrc "fromUser"
+xMin 1
+xMax 25
+xLabelIntervals 24
+xLablePrecision 1
+# Y axis properties
+showYAxis
+yAxisSrc "AutoScale"
+yMin -1
+yMax 1
+# Y2 axis properties
+y2AxisSrc "AutoScale"
+y2Max 1
+# Trace Properties
+numTraces 2
+xPv {
+  0 "SR-DI-EBPM-01:BPMID"
+  1 "SR-DI-EBPM-02:BPMID"
+}
+yPv {
+  0 "SR-DI-EBPM-01:SA:X"
+  1 "SR-DI-EBPM-02:SA:Y"
+}
+plotUpdateMode {
+  0 "y"
+  1 "y"
+}
+plotSymbolType {
+  0 "circle"
+  1 "circle"
+}
+plotColor {
+  0 index 25
+  1 index 20
+}
+endObjectProperties
+
+# (X-Y Graph)
+object xyGraphClass
+beginObjectProperties
+major 4
+minor 8
+release 0
+# Geometry
+x 8
+y 424
+w 992
+h 272
+# Appearance
+graphTitle "BPM Points"
+xLabel "Corrector ID"
+yLabel "Abs Magnitude"
+fgColor index 14
+bgColor index 3
+gridColor index 14
+font "helvetica-medium-r-12.0"
+# Operating Modes
+nPts 1
+# X axis properties
+showXAxis
+xAxisSrc "fromUser"
+xMin 1
+xMax 25
+xLabelIntervals 24
+xLablePrecision 1
+# Y axis properties
+showYAxis
+yAxisSrc "AutoScale"
+yMin 0
+yMax 1
+# Y2 axis properties
+y2AxisSrc "AutoScale"
+y2Max 1
+# Trace Properties
+numTraces 2
+xPv {
+  0 "SR-CS-SOFB-01:CMID"
+  1 "SR-CS-SOFB-01:CMID"
+}
+yPv {
+  0 "SR-PC-HSTR-01:MAG"
+  1 "SR-PC-VSTR-01:MAG"
+}
+plotStyle {
+  0 "point"
+  1 "point"
+}
+plotUpdateMode {
+  0 "y"
+  1 "y"
+}
+plotSymbolType {
+  0 "circle"
+  1 "circle"
+}
+plotColor {
+  0 index 25
+  1 index 20
+}
+endObjectProperties
+
+
+# (X-Y Graph)
+object xyGraphClass
+beginObjectProperties
+major 4
+minor 6
+release 0
+# Geometry
+x 8
+y 40
+w 616
+h 208
+# Appearance
+autoScaleBothDirections
+graphTitle "Tune Phase"
+yLabel "Degrees"
+fgColor index 14
+bgColor index 3
+gridColor index 14
+font "helvetica-medium-r-12.0"
+# Operating Modes
+nPts 2
+# X axis properties
+showXAxis
+xAxisSrc "AutoScale"
+xMin 0
+xMax 17000
+# Y axis properties
+showYAxis
+yAxisSrc "AutoScale"
+yMax 1
+# Y2 axis properties
+y2AxisSrc "AutoScale"
+y2Max 1
+# Trace Properties
+numTraces 1
+xPv {
+  0 "$(device):DET:SCALE"
+}
+yPv {
+  0 "$(device):TUNE:PHASEWF"
+}
+plotStyle {
+  0 "point"
+}
+plotUpdateMode {
+  0 "xOrY"
+}
+ySigned {
+  0 1
+}
+plotColor {
+  0 index 26
+}
+endObjectProperties
