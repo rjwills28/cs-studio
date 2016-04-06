@@ -93,7 +93,7 @@ public class Opi_xyGraphClassTest {
     }
 
     @Test
-    public void test_position() throws EdmException {
+    public void xy_position_is_copied_to_opi() throws EdmException {
 
         Edm_xyGraphClass edm = getEdmTitledEntity("BPM Line");
         assertNotNull("No XYGraph found", edm);
@@ -104,6 +104,19 @@ public class Opi_xyGraphClassTest {
 
         XMLFileHandler.isElementEqual("8", "x", element);
         XMLFileHandler.isElementEqual("96", "y", element);
+    }
+
+
+    @Test
+    public void width_and_height_incremented_by_one_pixed_in_opi() throws EdmException {
+
+        Edm_xyGraphClass edm = getEdmTitledEntity("BPM Line");
+        assertNotNull("No XYGraph found", edm);
+
+        populateXml(edm);
+
+        Element element = (Element)doc.getElementsByTagName("widget").item(0);
+
         XMLFileHandler.isElementEqual("993", "width", element);  // width++
         XMLFileHandler.isElementEqual("281", "height", element); // height++
     }
@@ -142,4 +155,45 @@ public class Opi_xyGraphClassTest {
         assertTrue(element.getElementsByTagName("trace_1_y_pv").getLength() == 0);
     }
 
+
+    @Test
+    public void BPMLine_converted_to_line_with_size_6_circle_points() throws EdmException {
+
+        Edm_xyGraphClass edm = getEdmTitledEntity("BPM Line");
+        assertNotNull("No XYGraph found", edm);
+        populateXml(edm);
+
+        Element element = (Element)doc.getElementsByTagName("widget").item(0);
+
+//        XMLFileHandler.isElementEqual("0", "trace_0_trace_type", element);  // line
+        XMLFileHandler.isElementEqual("2", "trace_0_point_style", element); // circle
+//        XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
+
+        while (element != null) {
+            System.out.println(element.getTagName());
+            element = (Element)element.getNextSibling();
+        }
+
+    }
+
+
+    @Test
+    public void BPMPoints_converted_to_points_with_size_6_circle_points() throws EdmException {
+
+        Edm_xyGraphClass edm = getEdmTitledEntity("BPM Points");
+        assertNotNull("No XYGraph found", edm);
+        populateXml(edm);
+
+        Element element = (Element)doc.getElementsByTagName("widget").item(0);
+
+        XMLFileHandler.isElementEqual("2", "trace_0_trace_type", element);  // line
+        XMLFileHandler.isElementEqual("2", "trace_0_point_style", element); // circle
+        XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
+
+        while (element != null) {
+            System.out.println(element.getTagName());
+            element = (Element)element.getNextSibling();
+        }
+
+    }
 }
