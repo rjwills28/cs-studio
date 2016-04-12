@@ -10,14 +10,33 @@ package org.csstudio.simplepv;
 import java.util.Arrays;
 import java.util.Collection;
 
+import java.time.Instant;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.*;
 
+import org.diirt.vtype.Alarm;
+import org.diirt.vtype.AlarmSeverity;
+import org.diirt.vtype.Display;
+import org.diirt.vtype.Time;
+import org.diirt.vtype.VDouble;
 import org.diirt.vtype.VType;
 import org.diirt.vtype.ValueFactory;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import org.diirt.util.text.NumberFormats;
+import org.csstudio.simplepv.VTypeHelper;
+
+import static org.diirt.vtype.ValueFactory.newAlarm;
+import static org.diirt.vtype.ValueFactory.newDisplay;
+import static org.diirt.vtype.ValueFactory.newTime;
+import static org.diirt.vtype.ValueFactory.newVDouble;
+
 
 /** JUnit test for VTypeHelper methods
  *
@@ -26,13 +45,22 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public class VTypeHelperTest
 {
-
+    private Time testTime;
+    private static final Alarm alarmNone = newAlarm(AlarmSeverity.NONE, "NONE");
+    private static final Display displayNone = newDisplay(Double.NaN, Double.NaN,
+            Double.NaN, "", NumberFormats.toStringFormat(), Double.NaN, Double.NaN,
+            Double.NaN, Double.NaN, Double.NaN);
     private VType testValue;
     private VTypeHelperBean expectedData;
 
     public VTypeHelperTest(VType value, VTypeHelperBean data) {
         this.testValue = value;
         this.expectedData = data;
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        testTime = newTime(Instant.ofEpochSecond(1354719441, 521786982));
     }
 
     @Parameterized.Parameters
@@ -105,6 +133,18 @@ public class VTypeHelperTest
         if (expectedData.isScalar) {
             assertThat(VTypeHelper.getSize(testValue), is(1));
         }
+    }
+ 
+    @Test
+    public void testGetTimestamp() {
+        VDouble value = newVDouble(1.0, alarmNone, testTime, displayNone);
+        assertEquals(VTypeHelper.getTimestamp(value), testTime.getTimestamp());
+    }
+
+    @Test
+    public void testGetTimestampWhenNull() {
+        VType value = new VType(){}; // Create instance of empty interface
+        assertEquals(VTypeHelper.getTimestamp(value), null);
     }
 
 }
