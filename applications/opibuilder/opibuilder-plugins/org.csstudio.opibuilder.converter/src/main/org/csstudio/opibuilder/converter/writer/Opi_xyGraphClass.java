@@ -225,14 +225,14 @@ public class Opi_xyGraphClass extends OpiWidget {
         List<String> tooltips = new ArrayList<>();
         if (r.getYPv().isExistInEDL()) {
             for (Entry<String, EdmString> entry : r.getYPv().getEdmAttributesMap().entrySet()) {
-                new OpiString(widgetContext, String.format(TRACE_N_Y_PV, entry.getKey()), entry.getValue());
+                new OpiString(widgetContext, String.format(TRACE_N_Y_PV, entry.getKey()), convertPVName(entry.getValue().get()));
                 tooltips.add(String.format(TRACE_TOOLTIP_UNIT, entry.getKey(), 'y'));
             }
         }
 
         if (r.getXPv().isExistInEDL()) {
             for (Entry<String, EdmString>  entry: r.getXPv().getEdmAttributesMap().entrySet()) {
-                new OpiString(widgetContext, String.format(TRACE_N_X_PV, entry.getKey()), entry.getValue());
+                new OpiString(widgetContext, String.format(TRACE_N_X_PV, entry.getKey()), convertPVName(entry.getValue().get()));
                 tooltips.add(String.format(TRACE_TOOLTIP_UNIT, entry.getKey(), 'x'));
             }
         }
@@ -242,8 +242,7 @@ public class Opi_xyGraphClass extends OpiWidget {
 
         // Set Graph PV to y0 to enable tooltips and middle-click
         if (r.getYPv().isExistInEDL()) {
-            EdmString y0pv =  r.getYPv().getEdmAttributesMap().get('0');
-            new OpiString(widgetContext, "pv_name", convertPVName(y0pv.get()));
+            new OpiString(widgetContext, "pv_name", String.format("$(%s)", String.format(TRACE_N_Y_PV, '0')));
         }
 
         if (r.getPlotColor().isExistInEDL()) {
