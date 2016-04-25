@@ -240,6 +240,12 @@ public class Opi_xyGraphClass extends OpiWidget {
         // construct tooltip string from all defined x- and y-PVs
         new OpiString(widgetContext, "tooltip", tooltips.stream().collect(Collectors.joining("\n")));
 
+        // Set Graph PV to y0 to enable tooltips and middle-click
+        if (r.getYPv().isExistInEDL()) {
+            EdmString y0pv =  r.getYPv().getEdmAttributesMap().get('0');
+            new OpiString(widgetContext, "pv_name", convertPVName(y0pv.get()));
+        }
+
         if (r.getPlotColor().isExistInEDL()) {
             for (Entry<String, EdmColor> entry : r.getPlotColor().getEdmAttributesMap().entrySet()) {
                 new OpiColor(widgetContext, String.format(TRACE_N_TRACE_COLOR, entry.getKey()), entry.getValue(), r);
