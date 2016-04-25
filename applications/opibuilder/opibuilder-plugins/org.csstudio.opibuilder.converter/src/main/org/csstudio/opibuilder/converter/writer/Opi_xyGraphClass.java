@@ -7,9 +7,12 @@
  ******************************************************************************/
 package org.csstudio.opibuilder.converter.writer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
-
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmInt;
@@ -56,6 +59,9 @@ public class Opi_xyGraphClass extends OpiWidget {
     private static final String TRACE_N_LINE_WIDTH = "trace_%s_line_width";
     private static final String TRACE_N_Y_AXIS_INDEX = "trace_%s_y_axis_index";
     private static final String TRACE_N_UPDATE_MODE = "trace_%s_update_mode";
+
+    // format takes index ('0', '1', ...) and axis ('x' or 'y') arguments
+    private static final String TRACE_TOOLTIP_UNIT = "$(trace_%1$s_%2$s_pv)\n$(trace_%1$s_%2$s_pv_value)";
 
     /**
      * Converts the Edm_activeRectangleClass to OPI Rectangle widget XML.
@@ -204,16 +210,6 @@ public class Opi_xyGraphClass extends OpiWidget {
         // trace properties
         new OpiInt(widgetContext, "trace_count", r.getNumTraces());
 
-
-
-        // PV X,Y
-        if (r.getXPv().isExistInEDL()) {
-            for (Entry<String, EdmString>  entry: r.getXPv().getEdmAttributesMap().entrySet()) {
-                new OpiString(widgetContext, String.format(TRACE_N_X_PV, entry.getKey()), entry.getValue());
-            }
-
-        }
-
         for(int i = 0; i < r.getNumTraces(); i++){
             new OpiInt(widgetContext, String.format(TRACE_I_UPDATE_DELAY, i), r.getUpdateTimerMs());
             //give it a big buffer if it is waveform, edm will show all waveform values regardless nPts.
@@ -225,12 +221,24 @@ public class Opi_xyGraphClass extends OpiWidget {
             }
         }
 
-
+        // PV X,Y
+        List<String> tooltips = new ArrayList<>();
         if (r.getYPv().isExistInEDL()) {
             for (Entry<String, EdmString> entry : r.getYPv().getEdmAttributesMap().entrySet()) {
                 new OpiString(widgetContext, String.format(TRACE_N_Y_PV, entry.getKey()), entry.getValue());
+                tooltips.add(String.format(TRACE_TOOLTIP_UNIT, entry.getKey(), 'y'));
             }
         }
+
+        if (r.getXPv().isExistInEDL()) {
+            for (Entry<String, EdmString>  entry: r.getXPv().getEdmAttributesMap().entrySet()) {
+                new OpiString(widgetContext, String.format(TRACE_N_X_PV, entry.getKey()), entry.getValue());
+                tooltips.add(String.format(TRACE_TOOLTIP_UNIT, entry.getKey(), 'x'));
+            }
+        }
+
+        // construct tooltip string from all defined x- and y-PVs
+        new OpiString(widgetContext, "tooltip", tooltips.stream().collect(Collectors.joining("\n")));
 
         if (r.getPlotColor().isExistInEDL()) {
             for (Entry<String, EdmColor> entry : r.getPlotColor().getEdmAttributesMap().entrySet()) {
