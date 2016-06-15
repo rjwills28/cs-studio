@@ -15,10 +15,11 @@
  ******************************************************************************/
 package org.csstudio.scan.server.internal;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -30,20 +31,22 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
+import org.csstudio.java.time.TimestampFormats;
 import org.csstudio.scan.ScanSystemPreferences;
 import org.csstudio.scan.command.LoopCommand;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.commandimpl.WaitForDevicesCommand;
 import org.csstudio.scan.commandimpl.WaitForDevicesCommandImpl;
 import org.csstudio.scan.data.ScanData;
-import org.csstudio.scan.data.ScanSampleFormatter;
 import org.csstudio.scan.device.Device;
 import org.csstudio.scan.device.DeviceContext;
 import org.csstudio.scan.device.DeviceContextHelper;
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.log.DataLog;
 import org.csstudio.scan.log.DataLogFactory;
+import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.MemoryInfo;
 import org.csstudio.scan.server.Scan;
@@ -52,7 +55,6 @@ import org.csstudio.scan.server.ScanCommandUtil;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.ScanInfo;
 import org.csstudio.scan.server.ScanState;
-import org.diirt.util.time.TimeDuration;
 
 /** Scan that can be executed: Commands, device context, state
  *
@@ -64,9 +66,17 @@ import org.diirt.util.time.TimeDuration;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ExecutableScan extends LoggedScan implements ScanContext, Callable<Object>
+public class ExecutableScan extends LoggedScan implements ScanContext, Callable<Object>, AutoCloseable
 {
     final private Logger logger = Logger.getLogger(getClass().getName());
+
+    /** Pattern for "java.lang.Exception: ", "java...Exception: " */
+    private final Pattern java_exception_pattern = Pattern.compile("java[.a-zA-Z]+Exception: ");
+
+    /** Jython interpreter that some commands may use.
+     *  Owned by the ExecutableScan, see close()
+     */
+    final private JythonSupport jython;
 
     /** Commands to execute */
     final private transient List<ScanCommandImpl<?>> pre_scan, implementations, post_scan;
@@ -113,7 +123,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     private Optional<String> device_active = Optional.empty(), device_status = Optional.empty(), device_state = Optional.empty(), device_progress = Optional.empty(), device_finish = Optional.empty();
 
     /** Timeout for updating the status PVs */
-    final private static TimeDuration timeout = TimeDuration.ofSeconds(10);
+    final private static Duration timeout = Duration.ofSeconds(10);
 
     /** Initialize
      *  @param name User-provided name for this scan
@@ -123,13 +133,14 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      */
     public ExecutableScan(final String name, final DeviceContext devices, ScanCommandImpl<?>... implementations) throws Exception
     {
-        this(name, devices,
+        this(new JythonSupport(), name, devices,
             Collections.<ScanCommandImpl<?>>emptyList(),
             Arrays.asList(implementations),
             Collections.<ScanCommandImpl<?>>emptyList());
     }
 
     /** Initialize
+     *  @param jython Jython support
      *  @param name User-provided name for this scan
      *  @param devices {@link DeviceContext} to use for scan
      *  @param pre_scan Commands to execute before the 'main' section of the scan
@@ -137,15 +148,16 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      *  @param post_scan Commands to execute before the 'main' section of the scan
      *  @throws Exception on error (cannot access log, ...)
      */
-    public ExecutableScan(final String name, final DeviceContext devices,
+    public ExecutableScan(final JythonSupport jython, final String name, final DeviceContext devices,
             final List<ScanCommandImpl<?>> pre_scan,
             final List<ScanCommandImpl<?>> implementations,
             final List<ScanCommandImpl<?>> post_scan) throws Exception
     {
-        this(DataLogFactory.createDataLog(name), devices, pre_scan, implementations, post_scan);
+        this(jython, DataLogFactory.createDataLog(name), devices, pre_scan, implementations, post_scan);
     }
 
     /** Initialize
+     *  @param jython Jython support
      *  @param scan {@link Scan}
      *  @param devices {@link DeviceContext} to use for scan
      *  @param pre_scan Commands to execute before the 'main' section of the scan
@@ -153,12 +165,13 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      *  @param post_scan Commands to execute before the 'main' section of the scan
      *  @throws Exception on error (cannot access log, ...)
      */
-    public ExecutableScan(final Scan scan, final DeviceContext devices,
+    public ExecutableScan(final JythonSupport jython, final Scan scan, final DeviceContext devices,
             final List<ScanCommandImpl<?>> pre_scan,
             final List<ScanCommandImpl<?>> implementations,
             final List<ScanCommandImpl<?>> post_scan) throws Exception
     {
         super(scan);
+        this.jython = jython;
         this.macros = new MacroContext(ScanSystemPreferences.getMacros());
         this.devices = devices;
         this.pre_scan = pre_scan;
@@ -504,8 +517,16 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 error = Optional.of(ScanState.Aborted.name());
             else
             {
-                if (ex.getMessage() != null)
-                    error = Optional.of(ex.getMessage());
+                String message = ex.getMessage();
+                if (message != null)
+                {   // Remove initial "java..Exception: " because that tends
+                    // to misguide many users in seeing a Java problem instead of
+                    // reading the actual message.
+                    // This tends to happen with nested messages which return
+                    // the 'cause', starting with its class name.
+                    message = java_exception_pattern.matcher(message).replaceFirst("");
+                    error = Optional.of(message);
+                }
                 else
                     error = Optional.of(ex.getClass().getName());
                 state.set(ScanState.Failed);
@@ -523,7 +544,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 {
                     getDevice(device_status.get()).write("");
                     ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal());
-                    getDevice(device_finish.get()).write(ScanSampleFormatter.format(new Date()));
+                    getDevice(device_finish.get()).write(TimestampFormats.MILLI_FORMAT.format(Instant.now()));
                     ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(100.0));
                     ScanCommandUtil.write(this, device_active.get(), Double.valueOf(0.0));
                 }
@@ -576,7 +597,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 try
                 {
                     ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(info.getPercentage()));
-                    getDevice(device_finish.get()).write(ScanSampleFormatter.formatCompactDateTime(info.getFinishTime()));
+                    getDevice(device_finish.get()).write(TimestampFormats.formatCompactDateTime(info.getFinishTime()));
                 }
                 catch (Exception ex)
                 {
@@ -710,5 +731,17 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     public void workPerformed(final int work_units)
     {
         work_performed.addAndGet(work_units);
+    }
+
+    /** Release resources */
+    @Override
+    public void close() throws Exception
+    {
+        jython.close();
+        pre_scan.clear();
+        pre_scan.clear();
+        implementations.clear();
+        post_scan.clear();
+        active_commands.clear();
     }
 }

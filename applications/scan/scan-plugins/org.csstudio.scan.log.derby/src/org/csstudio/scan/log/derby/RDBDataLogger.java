@@ -13,8 +13,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +36,9 @@ import org.csstudio.scan.server.Scan;
 @SuppressWarnings("nls")
 abstract public class RDBDataLogger
 {
+    /** Max 'name' length */
+    private volatile static int max_name_length = 0;
+
     final protected Connection connection;
 
     /** Device ID cache */
@@ -50,6 +53,31 @@ abstract public class RDBDataLogger
     public RDBDataLogger() throws Exception
     {
         connection = connect();
+
+        init(connection);
+    }
+
+    private void init(final Connection connection) throws Exception
+    {
+        synchronized (RDBDataLogger.class)
+        {
+            if (max_name_length <= 0)
+            {
+                max_name_length = 100; // default
+                try
+                (
+                    final ResultSet rs = connection.getMetaData().getColumns(null, null, "SCANS", "NAME");
+                )
+                {
+                    if (rs.next())
+                        max_name_length = rs.getInt("COLUMN_SIZE");
+                }
+                catch (Exception ex)
+                {
+                    Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot obtain max scan name length", ex);
+                }
+            }
+        }
     }
 
     /** Connect to RDB
@@ -63,16 +91,24 @@ abstract public class RDBDataLogger
      *  @return Scan ID, unique within the database
      *  @throws Exception on error
      */
-    public Scan createScan(final String scan_name) throws Exception
+    public Scan createScan(String scan_name) throws Exception
     {
-        final Date now = new Date();
-        final PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO scans(name, created) VALUES (?,?)",
-                Statement.RETURN_GENERATED_KEYS);
+        final Instant now = Instant.now();
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO scans(name, created) VALUES (?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+        )
         {
+            if (scan_name.length() > max_name_length)
+            {
+                Logger.getLogger(getClass().getName())
+                .log(Level.WARNING, "Truncating scan name to {0}: {1}", new Object[] { max_name_length, scan_name});
+                scan_name = scan_name.substring(0, max_name_length);
+            }
             statement.setString(1, scan_name);
-            statement.setTimestamp(2, new Timestamp(now.getTime()));
+            statement.setTimestamp(2, Timestamp.from(now));
             statement.executeUpdate();
             final ResultSet result = statement.getGeneratedKeys();
             try
@@ -87,10 +123,6 @@ abstract public class RDBDataLogger
                 result.close();
             }
         }
-        finally
-        {
-            statement.close();
-        }
     }
 
     /** Locate scan
@@ -101,23 +133,21 @@ abstract public class RDBDataLogger
     public Scan getScan(final long id) throws Exception
     {
         final Scan scan;
-        final PreparedStatement statement = connection.prepareStatement(
-                "SELECT id, name, created FROM scans WHERE id=?");
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT id, name, created FROM scans WHERE id=?");
+        )
         {
             statement.setLong(1, id);
             final ResultSet result = statement.executeQuery();
             if (result.next())
                 scan = new Scan(result.getLong(1),
                                 result.getString(2),
-                                result.getTimestamp(3));
+                                result.getTimestamp(3).toInstant());
             else
                 scan = null;
             result.close();
-        }
-        finally
-        {
-            statement.close();
         }
         return scan;
     }
@@ -129,20 +159,18 @@ abstract public class RDBDataLogger
     public Scan[] getScans() throws Exception
     {
         final List<Scan> scans = new ArrayList<Scan>();
-        final PreparedStatement statement = connection.prepareStatement(
-                "SELECT id, name, created FROM scans ORDER BY id");
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT id, name, created FROM scans ORDER BY id");
+        )
         {
             final ResultSet result = statement.executeQuery();
             while (result.next())
                 scans.add(new Scan(result.getLong(1),
                                    result.getString(2),
-                                   result.getTimestamp(3)));
+                                   result.getTimestamp(3).toInstant()));
             result.close();
-        }
-        finally
-        {
-            statement.close();
         }
         return scans.toArray(new Scan[scans.size()]);
     }
@@ -166,10 +194,12 @@ abstract public class RDBDataLogger
             return id;
         }
         // Insert new device
-        final PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO devices(name) VALUES (?)",
-                Statement.RETURN_GENERATED_KEYS);
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO devices(name) VALUES (?)",
+                    Statement.RETURN_GENERATED_KEYS);
+        )
         {
             statement.setString(1, device_name);
             statement.executeUpdate();
@@ -187,10 +217,6 @@ abstract public class RDBDataLogger
                 result.close();
             }
         }
-        finally
-        {
-            statement.close();
-        }
     }
 
     /** Find a device in the database
@@ -200,9 +226,11 @@ abstract public class RDBDataLogger
      */
     private int findDevice(final String device_name) throws SQLException
     {
-        final PreparedStatement statement = connection.prepareStatement(
-                "SELECT id FROM devices WHERE name=?");
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT id FROM devices WHERE name=?");
+        )
         {
             statement.setString(1, device_name);
             final ResultSet result = statement.executeQuery();
@@ -216,10 +244,6 @@ abstract public class RDBDataLogger
             {
                 result.close();
             }
-        }
-        finally
-        {
-            statement.close();
         }
     }
 
@@ -240,11 +264,11 @@ abstract public class RDBDataLogger
         insert_sample_statement.setLong(1, scan_id);
         insert_sample_statement.setInt(2, device_id);
         insert_sample_statement.setLong(3, sample.getSerial());
-        insert_sample_statement.setTimestamp(4, new Timestamp(sample.getTimestamp().getTime()));
+        insert_sample_statement.setTimestamp(4, Timestamp.from(sample.getTimestamp()));
         insert_sample_statement.setObject(5, new SampleValue(sample.getValues()));
         final int rows = insert_sample_statement.executeUpdate();
         if (rows != 1)
-                throw new Exception("Sample insert affected " + rows + " rows");
+            throw new Exception("Sample insert affected " + rows + " rows");
     }
 
     /** Get serial of last logged sample.
@@ -313,9 +337,11 @@ abstract public class RDBDataLogger
     private List<ScanSample> getScanSamples(final long scan_id, final String device_name) throws Exception
     {
         final List<ScanSample> samples = new ArrayList<ScanSample>();
-        final PreparedStatement statement = connection.prepareStatement(
-            "SELECT serial, timestamp, value FROM samples WHERE scan_id=? AND device_id=? ORDER BY serial");
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT serial, timestamp, value FROM samples WHERE scan_id=? AND device_id=? ORDER BY serial");
+        )
         {
             statement.setLong(1, scan_id);
             statement.setInt(2, getDevice(device_name));
@@ -323,15 +349,11 @@ abstract public class RDBDataLogger
             while (result.next())
             {
                 final long serial = result.getLong(1);
-                final Date timestamp = result.getTimestamp(2);
+                final Instant timestamp = result.getTimestamp(2).toInstant();
                 final SampleValue value = (SampleValue) result.getObject(3);
                 samples.add(ScanSampleFactory.createSample(timestamp, serial, value.getValues()));
             }
             result.close();
-        }
-        finally
-        {
-            statement.close();
         }
         return samples;
     }
@@ -344,19 +366,17 @@ abstract public class RDBDataLogger
     private String[] getScanDevices(final long scan_id) throws SQLException
     {
         final List<String> devices = new ArrayList<String>();
-        final PreparedStatement statement = connection.prepareStatement(
-            "SELECT DISTINCT d.name FROM samples s JOIN devices d ON s.device_id = d.id  WHERE scan_id=?");
         try
+        (
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT DISTINCT d.name FROM samples s JOIN devices d ON s.device_id = d.id  WHERE scan_id=?");
+        )
         {
             statement.setLong(1, scan_id);
             final ResultSet result = statement.executeQuery();
             while (result.next())
                 devices.add(result.getString(1));
             result.close();
-        }
-        finally
-        {
-            statement.close();
         }
         return devices.toArray(new String[devices.size()]);
     }

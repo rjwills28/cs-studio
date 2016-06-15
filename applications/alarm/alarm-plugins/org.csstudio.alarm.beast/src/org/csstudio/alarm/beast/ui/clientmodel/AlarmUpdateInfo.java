@@ -8,9 +8,8 @@
 package org.csstudio.alarm.beast.ui.clientmodel;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Level;
 
 import javax.jms.MapMessage;
@@ -19,7 +18,6 @@ import org.csstudio.alarm.beast.Activator;
 import org.csstudio.alarm.beast.JMSAlarmMessage;
 import org.csstudio.alarm.beast.SeverityLevel;
 import org.csstudio.logging.JMSLogMessage;
-import org.diirt.util.time.Timestamp;
 
 /** Information about an alarm update
  *  @author Kay Kasemir
@@ -29,7 +27,7 @@ public class AlarmUpdateInfo
 {
     final private SeverityLevel current_severity, severity;
     final private String name_or_path, current_message, message, value;
-    final private Timestamp timestamp;
+    final private Instant timestamp;
 
     /** Initialize from JMS MapMessage
      *  @param message Message that must contain alarm info
@@ -62,17 +60,16 @@ public class AlarmUpdateInfo
         final String current_message = message.getString(JMSAlarmMessage.CURRENT_STATUS);
         final String value = message.getString(JMSAlarmMessage.VALUE);
         final String timetext = message.getString(JMSAlarmMessage.EVENTTIME);
-        Date date;
+        Instant timestamp;
         try
         {
-            date = date_format.parse(timetext);
+            timestamp = date_format.parse(timetext).toInstant();
         }
-        catch (ParseException ex)
+        catch (Throwable ex)
         {
             Activator.getLogger().log(Level.WARNING, "Received invalid time {0}", timetext);
-            date = new Date();
+            timestamp = Instant.now();
         }
-        final Timestamp timestamp = Timestamp.of(date);
         return new AlarmUpdateInfo(name, current_severity, current_message,
                 severity, status, value, timestamp);
     }
@@ -91,7 +88,7 @@ public class AlarmUpdateInfo
             final String current_message,
             final SeverityLevel severity, final String message,
             final String value,
-            final Timestamp timestamp)
+            final Instant timestamp)
     {
         this.name_or_path = name_or_path;
         this.current_severity = current_severity;
@@ -139,7 +136,7 @@ public class AlarmUpdateInfo
     }
 
     /** @return Time of alarm */
-    public Timestamp getTimestamp()
+    public Instant getTimestamp()
     {
         return timestamp;
     }

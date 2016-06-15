@@ -17,8 +17,8 @@ package org.csstudio.scan.server.internal;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,7 +55,7 @@ public class ScanServerImpl implements ScanServer
     final private ScanEngine scan_engine = new ScanEngine();
 
     /** Time when this scan server was started */
-    private Date start_time = null;
+    private Instant start_time = null;
 
     /** Start the scan server */
     public void start() throws Exception
@@ -64,7 +64,7 @@ public class ScanServerImpl implements ScanServer
             throw new Exception("Already started");
 
         scan_engine.start(true);
-        start_time = new Date();
+        start_time = Instant.now();
     }
 
     /** Stop the scan server */
@@ -138,12 +138,12 @@ public class ScanServerImpl implements ScanServer
             throws Exception
     {
         try
+        (   // Create Jython interpreter for this scan
+            final JythonSupport jython = new JythonSupport();
+        )
         {   // Parse scan from XML
             final XMLCommandReader reader = new XMLCommandReader(new ScanCommandFactory());
             final List<ScanCommand> commands = reader.readXMLString(commands_as_xml);
-
-            // Create Jython interpreter for this scan
-            final JythonSupport jython = new JythonSupport();
 
             // Implement commands
             final ScanCommandImplTool tool = ScanCommandImplTool.getInstance();
@@ -164,10 +164,14 @@ public class ScanServerImpl implements ScanServer
             log_out.println(simulation.getSimulationTime() + "   Total estimated execution time");
             log_out.close();
 
-            // Fetch simulation log, help GC to clear copies of log
+            // Fetch simulation log
             final String log_text = log_buf.toString();
+
+            // Help GC to clear copies of log
             log_out = null;
             log_buf = null;
+            scan.clear();
+            commands.clear();
 
             return new SimulationResult(simulation.getSimulationSeconds(), log_text);
         }
@@ -213,7 +217,7 @@ public class ScanServerImpl implements ScanServer
             final DeviceContext devices = new DeviceContext();
 
             // Submit scan to engine for execution
-            final ExecutableScan scan = new ExecutableScan(scan_name, devices, pre_impl, main_impl, post_impl);
+            final ExecutableScan scan = new ExecutableScan(jython, scan_name, devices, pre_impl, main_impl, post_impl);
             scan_engine.submit(scan, queue);
             return scan.getId();
         }

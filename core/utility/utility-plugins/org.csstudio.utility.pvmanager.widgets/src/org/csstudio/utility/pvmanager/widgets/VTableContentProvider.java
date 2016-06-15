@@ -1,9 +1,10 @@
 package org.csstudio.utility.pvmanager.widgets;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.diirt.util.array.ListNumber;
-import org.diirt.util.time.Timestamp;
+import org.diirt.vtype.Alarm;
 import org.diirt.vtype.VTable;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -33,15 +34,19 @@ public class VTableContentProvider implements IStructuredContentProvider {
             } else if (vTable.getColumnType(column).equals(Double.TYPE)) {
                 return ((ListNumber) vTable.getColumnData(column)).getDouble(row);
             } else if (vTable.getColumnType(column).equals(String.class)) {
-                    Object o = ((List<?>) vTable.getColumnData(column)).get(row);
-                    if(o == null){
-                        return null;
-                    }else{
+                Object o = ((List<?>) vTable.getColumnData(column)).get(row);
+                if (o == null) {
+                    return null;
+                } else {
                     return o.toString();
-                    }
-            } else if (vTable.getColumnType(column).equals(Timestamp.class)){
-                 return ((List<?>) vTable.getColumnData(column)).get(row);
-             } else {
+                }
+            } else if (vTable.getColumnType(column).equals(Instant.class)) {
+                return ((List<?>) vTable.getColumnData(column)).get(row);
+            } else if (vTable.getColumnType(column).equals(Boolean.TYPE)) {
+                return ((List<?>) vTable.getColumnData(column)).get(row);
+            } else if (vTable.getColumnType(column).equals(Alarm.class)) {
+                return ((List<?>) vTable.getColumnData(column)).get(row);
+            } else {
                 throw new RuntimeException("Table contain unsupported type " + vTable.getColumnType(column).getName());
             }
         }

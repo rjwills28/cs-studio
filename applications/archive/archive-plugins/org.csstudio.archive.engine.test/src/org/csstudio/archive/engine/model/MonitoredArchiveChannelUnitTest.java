@@ -7,8 +7,7 @@
  ******************************************************************************/
 package org.csstudio.archive.engine.model;
 
-import static org.csstudio.utility.test.HamcrestMatchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.csstudio.vtype.pv.PV;
 import org.csstudio.vtype.pv.PVPool;
@@ -35,15 +34,21 @@ public class MonitoredArchiveChannelUnitTest
         final SampleBuffer samples = channel.getSampleBuffer();
         channel.start();
 
+        // Need some delay to get new time stamps, otherwise
+        // new values will be skipped since they hold the same time stamp
+        Thread.sleep(10);
         pv.write(1.0);
+        Thread.sleep(10);
         pv.write(2.0);
+        Thread.sleep(10);
         pv.write(2.05);
+        Thread.sleep(10);
         pv.write(2.5);
 
         // Allow monitors to arrive..
         Thread.sleep(5000);
 
-        assertThat(TestHelper.dump(samples), greaterThanOrEqualTo(4));
+        assertTrue(TestHelper.dump(samples) >= 4);
 
         channel.stop();
         PVPool.releasePV(pv);

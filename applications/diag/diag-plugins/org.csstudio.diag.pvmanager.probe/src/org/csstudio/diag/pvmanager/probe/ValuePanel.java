@@ -1,8 +1,11 @@
 package org.csstudio.diag.pvmanager.probe;
 
+import java.time.format.DateTimeFormatter;
+
+import org.csstudio.java.time.TimestampFormats;
 import org.diirt.vtype.Alarm;
-import org.diirt.vtype.Enum;
 import org.diirt.vtype.AlarmSeverity;
+import org.diirt.vtype.Enum;
 import org.diirt.vtype.SimpleValueFormat;
 import org.diirt.vtype.Time;
 import org.diirt.vtype.ValueFormat;
@@ -13,7 +16,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.diirt.util.time.TimestampFormat;
 
 /**
  * Probe panel that allows to show the value.
@@ -25,8 +27,7 @@ public class ValuePanel extends Composite {
 
     // TODO: we should take these from a default place
     private ValueFormat valueFormat = new SimpleValueFormat(3);
-    private TimestampFormat timeFormat = new TimestampFormat(
-            "yyyy/MM/dd HH:mm:ss.N Z"); //$NON-NLS-1$
+    private DateTimeFormatter timeFormat = TimestampFormats.FULL_FORMAT;
 
     private Text valueField;
     private Text timestampField;

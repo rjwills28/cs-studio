@@ -8,9 +8,12 @@
 package org.csstudio.opibuilder.scriptUtil;
 
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
+import org.csstudio.java.time.TimestampFormats;
 import org.csstudio.opibuilder.editparts.AbstractBaseEditPart;
 import org.csstudio.opibuilder.util.BOYPVFactory;
 import org.csstudio.opibuilder.util.DisplayUtils;
@@ -20,8 +23,6 @@ import org.csstudio.simplepv.VTypeHelper;
 import org.csstudio.ui.util.thread.UIBundlingThread;
 import org.diirt.util.array.ListInt;
 import org.diirt.util.array.ListNumber;
-import org.diirt.util.time.Timestamp;
-import org.diirt.util.time.TimestampFormat;
 import org.diirt.vtype.AlarmSeverity;
 import org.diirt.vtype.VDoubleArray;
 import org.diirt.vtype.VEnum;
@@ -44,7 +45,7 @@ import org.eclipse.swt.widgets.Display;
  */
 public class PVUtil{
 
-    private static final TimestampFormat timeFormat = new TimestampFormat("yyyy/MM/dd HH:mm:ss.SSS"); //$NON-NLS-1$
+    private static final DateTimeFormatter timeFormat = TimestampFormats.FULL_FORMAT;
 
     /**Create a PV and start it. PVListener can be added to the PV to monitor its
      * value change, but please note that the listener is executed in non-UI thread.
@@ -261,7 +262,7 @@ public class PVUtil{
      * @return the timestamp in string.
      */
     public final static String getTimeString(IPV pv){
-        Timestamp time = VTypeHelper.getTimestamp(checkPVValue(pv));
+        Instant time = VTypeHelper.getTimestamp(checkPVValue(pv));
         if(time != null)
             return timeFormat.format(time);
         return ""; //$NON-NLS-1$
@@ -277,9 +278,9 @@ public class PVUtil{
      *  @return milliseconds since 1970.
      */
     public final static double getTimeInMilliseconds(IPV pv){
-        Timestamp time = VTypeHelper.getTimestamp(checkPVValue(pv));
+        Instant time = VTypeHelper.getTimestamp(checkPVValue(pv));
         if(time != null)
-            return time.getSec()*1000 + time.getNanoSec()/1000000;
+            return time.toEpochMilli();
         return 0;
     }
 

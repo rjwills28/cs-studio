@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.device;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.data.ScanSampleFactory;
@@ -102,7 +102,7 @@ public class VTypeHelper
      */
     public static ScanSample createSample(final long serial, final VType value) throws IllegalArgumentException
     {
-        final Date date = getDate(value);
+        final Instant date = ValueUtil.timeOf(value).getTimestamp();
         // Log anything numeric as NumberSample
         if (value instanceof VNumber)
             return ScanSampleFactory.createSample(date, serial, ((VNumber) value).getValue());
@@ -118,13 +118,5 @@ public class VTypeHelper
         }
         else
             return ScanSampleFactory.createSample(date, serial, toString(value));
-    }
-
-    /** @param value {@link VType}
-     *  @return {@link Date}
-     */
-    private static Date getDate(final VType value)
-    {
-        return ValueUtil.timeOf(value).getTimestamp().toDate();
     }
 }
