@@ -59,6 +59,7 @@ public class Opi_xyGraphClass extends OpiWidget {
     private static final String TRACE_N_LINE_WIDTH = "trace_%s_line_width";
     private static final String TRACE_N_Y_AXIS_INDEX = "trace_%s_y_axis_index";
     private static final String TRACE_N_UPDATE_MODE = "trace_%s_update_mode";
+    private static final String TRACE_N_ANTI_ALIAS = "trace_%s_anti_alias";
 
     // format takes index ('0', '1', ...) and axis ('x' or 'y') arguments
     private static final String TRACE_TOOLTIP_UNIT = "$(trace_%1$s_%2$s_pv)\n$(trace_%1$s_%2$s_pv_value)";
@@ -219,6 +220,8 @@ public class Opi_xyGraphClass extends OpiWidget {
             } else {
                 new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), r.getnPts());
             }
+            // force anti-aliasing 'off' to remove 'blur'
+            new OpiBoolean(widgetContext, String.format(TRACE_N_ANTI_ALIAS,  String.valueOf(i)), false);
         }
 
         // PV X,Y
