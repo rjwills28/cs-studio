@@ -61,7 +61,6 @@ public class Opi_xyGraphClassTest {
                 }
             }
         }
-        System.out.println("Null");
         return null;
     }
 
@@ -103,7 +102,7 @@ public class Opi_xyGraphClassTest {
         Element element = (Element)doc.getElementsByTagName("widget").item(0);
 
         XMLFileHandler.isElementEqual("8", "x", element);
-        XMLFileHandler.isElementEqual("96", "y", element);
+        XMLFileHandler.isElementEqual("4", "y", element);
     }
 
 
@@ -134,8 +133,8 @@ public class Opi_xyGraphClassTest {
 
         XMLFileHandler.isElementEqual("SR-DI-EBPM-01:BPMID", "trace_0_x_pv", element);
         XMLFileHandler.isElementEqual("SR-DI-EBPM-01:SA:X", "trace_0_y_pv", element);
-        XMLFileHandler.isElementEqual("SR-DI-EBPM-02:BPMID", "trace_1_x_pv", element);
-        XMLFileHandler.isElementEqual("SR-DI-EBPM-02:SA:Y", "trace_1_y_pv", element);
+        XMLFileHandler.isElementEqual("SR-DI-EBPM-01:BPMID", "trace_1_x_pv", element);
+        XMLFileHandler.isElementEqual("SR-DI-EBPM-01:SA:Y", "trace_1_y_pv", element);
     }
 
     @Test
@@ -155,6 +154,19 @@ public class Opi_xyGraphClassTest {
         assertTrue(element.getElementsByTagName("trace_1_y_pv").getLength() == 0);
     }
 
+    @Test
+    public void TunePhase_converted_to_size_zero_points() throws EdmException {
+
+        Edm_xyGraphClass edm = getEdmTitledEntity("Tune Phase");
+        assertNotNull("No XYGraph found", edm);
+        populateXml(edm);
+
+        Element element = (Element)doc.getElementsByTagName("widget").item(0);
+        // verified by hand to be correct; looks like the element isn't working
+        XMLFileHandler.isElementEqual("2", "trace_0_trace_type", element);  // point
+        XMLFileHandler.isElementEqual("1", "trace_0_point_style", element); // point
+        XMLFileHandler.isElementEqual("1", "trace_0_point_size", element);
+    }
 
     @Test
     public void BPMLine_converted_to_line_with_size_6_circle_points() throws EdmException {
@@ -164,15 +176,10 @@ public class Opi_xyGraphClassTest {
         populateXml(edm);
 
         Element element = (Element)doc.getElementsByTagName("widget").item(0);
-
-//        XMLFileHandler.isElementEqual("0", "trace_0_trace_type", element);  // line
+        // verified by hand to be correct; looks like the element isn't working
+        XMLFileHandler.isElementEqual("0", "trace_0_trace_type", element);  // line
         XMLFileHandler.isElementEqual("2", "trace_0_point_style", element); // circle
-//        XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
-
-        while (element != null) {
-            System.out.println(element.getTagName());
-            element = (Element)element.getNextSibling();
-        }
+        XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
 
     }
 
@@ -185,15 +192,10 @@ public class Opi_xyGraphClassTest {
         populateXml(edm);
 
         Element element = (Element)doc.getElementsByTagName("widget").item(0);
-
-        XMLFileHandler.isElementEqual("2", "trace_0_trace_type", element);  // line
+     // verified by hand to be correct; looks like the element isn't working
+        XMLFileHandler.isElementEqual("2", "trace_0_trace_type", element);  // point
         XMLFileHandler.isElementEqual("2", "trace_0_point_style", element); // circle
         XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
-
-        while (element != null) {
-            System.out.println(element.getTagName());
-            element = (Element)element.getNextSibling();
-        }
 
     }
 }
