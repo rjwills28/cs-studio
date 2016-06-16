@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 614
-y 278
-w 280
-h 177
+x 455
+y 210
+w 1075
+h 843
 font "helvetica-bold-r-14.0"
 ctlFont "helvetica-bold-r-14.0"
 btnFont "helvetica-bold-r-14.0"
@@ -33,7 +33,7 @@ minor 8
 release 0
 # Geometry
 x 8
-y 96
+y 8
 w 992
 h 280
 # Appearance
@@ -65,11 +65,11 @@ y2Max 1
 numTraces 2
 xPv {
   0 "SR-DI-EBPM-01:BPMID"
-  1 "SR-DI-EBPM-02:BPMID"
+  1 "SR-DI-EBPM-01:BPMID"
 }
 yPv {
   0 "SR-DI-EBPM-01:SA:X"
-  1 "SR-DI-EBPM-02:SA:Y"
+  1 "SR-DI-EBPM-01:SA:Y"
 }
 plotUpdateMode {
   0 "y"
@@ -92,8 +92,8 @@ major 4
 minor 8
 release 0
 # Geometry
-x 8
-y 424
+x 9
+y 585
 w 992
 h 272
 # Appearance
@@ -149,17 +149,16 @@ plotColor {
 }
 endObjectProperties
 
-
 # (X-Y Graph)
 object xyGraphClass
 beginObjectProperties
 major 4
-minor 6
+minor 8
 release 0
 # Geometry
-x 8
-y 40
-w 616
+x 388
+y 298
+w 613
 h 208
 # Appearance
 autoScaleBothDirections
@@ -209,11 +208,11 @@ endObjectProperties
 object xyGraphClass
 beginObjectProperties
 major 4
-minor 6
+minor 8
 release 0
 # Geometry
-x 400
-y 80
+x 8
+y 297
 w 376
 h 280
 # Appearance
@@ -258,3 +257,4 @@ plotColor {
   0 index 25
 }
 endObjectProperties
+
