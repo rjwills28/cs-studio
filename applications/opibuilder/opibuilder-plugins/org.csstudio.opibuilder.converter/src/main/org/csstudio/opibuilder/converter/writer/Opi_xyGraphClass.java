@@ -301,6 +301,9 @@ public class Opi_xyGraphClass extends OpiWidget {
                     style = STYLE_DIAMOND;
                 }
                 new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, entry.getKey()), style);
+                if (style != STYLE_NONE) {
+                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_SIZE, entry.getKey()), 6);
+                }
             }
         }
 
