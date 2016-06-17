@@ -226,6 +226,8 @@ public class Opi_xyGraphClass extends OpiWidget {
             }
             // force anti-aliasing 'off' to remove 'blur'
             new OpiBoolean(widgetContext, String.format(TRACE_N_ANTI_ALIAS,  String.valueOf(i)), false);
+            // set default line type; not all properties are declared in EDM
+            cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, String.valueOf(i)), SOLID_LINE);
         }
 
         // PV X,Y
