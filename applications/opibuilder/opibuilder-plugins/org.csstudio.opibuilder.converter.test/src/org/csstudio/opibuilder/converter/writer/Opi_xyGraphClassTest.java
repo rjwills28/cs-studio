@@ -162,7 +162,7 @@ public class Opi_xyGraphClassTest {
         populateXml(edm);
 
         Element element = (Element)doc.getElementsByTagName("widget").item(0);
-        // verified by hand to be correct; looks like the element isn't working
+
         XMLFileHandler.isElementEqual("2", "trace_0_trace_type", element);  // point
         XMLFileHandler.isElementEqual("1", "trace_0_point_style", element); // point
         XMLFileHandler.isElementEqual("1", "trace_0_point_size", element);
@@ -176,11 +176,9 @@ public class Opi_xyGraphClassTest {
         populateXml(edm);
 
         Element element = (Element)doc.getElementsByTagName("widget").item(0);
-        // verified by hand to be correct; looks like the element isn't working
         XMLFileHandler.isElementEqual("0", "trace_0_trace_type", element);  // line
         XMLFileHandler.isElementEqual("2", "trace_0_point_style", element); // circle
         XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
-
     }
 
 
@@ -192,10 +190,9 @@ public class Opi_xyGraphClassTest {
         populateXml(edm);
 
         Element element = (Element)doc.getElementsByTagName("widget").item(0);
-     // verified by hand to be correct; looks like the element isn't working
+
         XMLFileHandler.isElementEqual("2", "trace_0_trace_type", element);  // point
         XMLFileHandler.isElementEqual("2", "trace_0_point_style", element); // circle
         XMLFileHandler.isElementEqual("6", "trace_0_point_size", element);
-
     }
 }
