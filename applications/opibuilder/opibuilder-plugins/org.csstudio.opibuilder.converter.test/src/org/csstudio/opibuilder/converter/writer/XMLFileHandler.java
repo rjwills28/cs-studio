@@ -8,6 +8,7 @@
 package org.csstudio.opibuilder.converter.writer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -50,11 +51,11 @@ public class XMLFileHandler {
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
-        transformer.transform(new DOMSource(doc), 
+        transformer.transform(new DOMSource(doc),
              new StreamResult(new OutputStreamWriter(out, "UTF-8")));
     }
-	
-	
+
+
     public static Document createDomDocument() throws EdmException {
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -68,7 +69,6 @@ public class XMLFileHandler {
 
     public static void writeXML(Document doc) {
         try {
-
             OutputFormat format = new OutputFormat(doc);
             format.setLineWidth(65);
             format.setIndenting(true);
@@ -145,10 +145,11 @@ public class XMLFileHandler {
 
     public static void isElementEqual(String expectedValue, String tag, Element e) {
         Element subElement = (Element)e.getElementsByTagName(tag).item(0);
+        assertNotNull(tag + " is null element", subElement);
         assertEquals(expectedValue, subElement.getTextContent());
     }
 
-    public static void isFontElementEqual(String expectedValue, String tag,    Element e) throws EdmException {
+    public static void isFontElementEqual(String expectedValue, String tag, Element e) throws EdmException {
         EdmFont f = new EdmFont(new EdmAttribute(expectedValue), true);
 
         Element subElement = (Element)e.getElementsByTagName(tag).item(0);
