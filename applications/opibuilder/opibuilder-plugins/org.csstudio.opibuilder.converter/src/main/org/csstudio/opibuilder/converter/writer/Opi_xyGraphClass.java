@@ -8,6 +8,7 @@
 package org.csstudio.opibuilder.converter.writer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -63,6 +64,9 @@ public class Opi_xyGraphClass extends OpiWidget {
 
     // format takes index ('0', '1', ...) and axis ('x' or 'y') arguments
     private static final String TRACE_TOOLTIP_UNIT = "$(trace_%1$s_%2$s_pv)\n$(trace_%1$s_%2$s_pv_value)";
+
+    // Cache for repeatedly set chart attributes
+    private HashMap<String, Integer> attributeStore = new HashMap<String, Integer>();
 
     /**
      * Converts the Edm_activeRectangleClass to OPI Rectangle widget XML.
@@ -216,9 +220,9 @@ public class Opi_xyGraphClass extends OpiWidget {
             //give it a big buffer if it is waveform, edm will show all waveform values regardless nPts.
             if (r.getPlotMode() == null && r.getnPts() < 5){ //assume it is a waveform
                 new OpiBoolean(widgetContext, String.format(TRACE_I_CONCATENATE_DATA, i), false);
-                new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), 65536);
+                cacheIntAttribute(String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), 65536);
             } else {
-                new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), r.getnPts());
+                cacheIntAttribute(String.format(TRACE_N_BUFFER_SIZE, String.valueOf(i)), r.getnPts());
             }
             // force anti-aliasing 'off' to remove 'blur'
             new OpiBoolean(widgetContext, String.format(TRACE_N_ANTI_ALIAS,  String.valueOf(i)), false);
@@ -260,17 +264,17 @@ public class Opi_xyGraphClass extends OpiWidget {
                 final String key = entry.getKey();
 
                 if(value.equals("needle")){
-                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), BAR);
+                    cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, key), BAR);
                 } else if (value.equals("point")) {
-                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), POINT);
-                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, key), STYLE_POINT);
+                    cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, key), POINT);
+                    cacheIntAttribute(String.format(TRACE_N_POINT_STYLE, key), STYLE_POINT);
                     // EDM point graphs are always one pixel
-                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_SIZE, key), 1);
+                    cacheIntAttribute(String.format(TRACE_N_POINT_SIZE, key), 1);
                 } else if (value.equals("single point")) {
-                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), POINT);
-                    new OpiInt(widgetContext, String.format(TRACE_N_BUFFER_SIZE, key), 1);
+                    cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, key), POINT);
+                    cacheIntAttribute(String.format(TRACE_N_BUFFER_SIZE, key), 1);
                 } else {
-                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), SOLID_LINE);
+                    cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, key), SOLID_LINE);
                 }
             }
         }
@@ -284,7 +288,7 @@ public class Opi_xyGraphClass extends OpiWidget {
         if (r.getLineStyle().isExistInEDL()) {
             for (Entry<String, EdmString> entry : r.getLineStyle().getEdmAttributesMap().entrySet()) {
                 if (entry.getValue().get().equals("dash")) {
-                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, entry.getKey()), DASH_LINE);
+                    cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, entry.getKey()), DASH_LINE);
                 }
             }
         }
@@ -300,9 +304,9 @@ public class Opi_xyGraphClass extends OpiWidget {
                 }else if (entry.getValue().get().equals("diamond")) {
                     style = STYLE_DIAMOND;
                 }
-                new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, entry.getKey()), style);
+                cacheIntAttribute(String.format(TRACE_N_POINT_STYLE, entry.getKey()), style);
                 if (style != STYLE_NONE) {
-                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_SIZE, entry.getKey()), 6);
+                    cacheIntAttribute(String.format(TRACE_N_POINT_SIZE, entry.getKey()), 6);
                 }
             }
         }
@@ -312,12 +316,12 @@ public class Opi_xyGraphClass extends OpiWidget {
                 //EDM will sort the data in this mode where BOY cannot, so plot it as points
                 if (entry.getValue().get().equals("plot")) {
                     final String key = entry.getKey();
-                    new OpiInt(widgetContext, String.format(TRACE_N_TRACE_TYPE, key), POINT);
+                    cacheIntAttribute(String.format(TRACE_N_TRACE_TYPE, key), POINT);
 
                     if (!r.getPlotSymbolType().getEdmAttributesMap().containsKey(key)) {
-                        new OpiInt(widgetContext, String.format(TRACE_N_POINT_STYLE, key), STYLE_POINT);
+                        cacheIntAttribute(String.format(TRACE_N_POINT_STYLE, key), STYLE_POINT);
                     }
-                    new OpiInt(widgetContext, String.format(TRACE_N_POINT_SIZE, key), 2);
+                    cacheIntAttribute(String.format(TRACE_N_POINT_SIZE, key), 2);
                 }
             }
         }
@@ -348,7 +352,38 @@ public class Opi_xyGraphClass extends OpiWidget {
             }
         }
 
+        this.createCachedAttributes();
+
         log.config("Edm_xyGraphClass written.");
+    }
+
+    /**
+     * Store an integer value to be written to an OpiInt attribute.
+     *
+     * When the stored attributes are saved the LAST value saved will be used
+     *
+     * @param attribute Attribute name
+     * @param value Value
+     */
+    private void cacheIntAttribute(String attribute, int value) {
+        if (this.attributeStore.containsKey(attribute)) {
+            log.fine("Overwriting attribute: " + attribute);
+        }
+        this.attributeStore.put(attribute, value);
+    }
+
+    /**
+     * Construct OpiInt attributes for all stored attributes
+     *
+     * When the stored attributes are saved the LAST value saved will be used
+     *
+     * @param attribute Attribute name
+     * @param value Value
+     */
+    private void createCachedAttributes() {
+        for (Entry<String, Integer> entry : this.attributeStore.entrySet()) {
+            new OpiInt(widgetContext, entry.getKey(), entry.getValue());
+        }
     }
 
     /**
