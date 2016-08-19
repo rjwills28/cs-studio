@@ -7,14 +7,17 @@
  ******************************************************************************/
 package org.csstudio.simplepv;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import java.time.Instant;
-
+import static org.diirt.vtype.ValueFactory.newAlarm;
+import static org.diirt.vtype.ValueFactory.newDisplay;
+import static org.diirt.vtype.ValueFactory.newTime;
+import static org.diirt.vtype.ValueFactory.newVDouble;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.time.Instant;
 
 import org.diirt.vtype.Alarm;
 import org.diirt.vtype.AlarmSeverity;
@@ -32,15 +35,8 @@ import org.junit.runners.Parameterized;
 import org.diirt.util.text.NumberFormats;
 import org.csstudio.simplepv.VTypeHelper;
 
-import static org.diirt.vtype.ValueFactory.newAlarm;
-import static org.diirt.vtype.ValueFactory.newDisplay;
-import static org.diirt.vtype.ValueFactory.newTime;
-import static org.diirt.vtype.ValueFactory.newVDouble;
-
-
 /** JUnit test for VTypeHelper methods
  *
- *  @author Nick Battam
  */
 @RunWith(Parameterized.class)
 public class VTypeHelperTest
@@ -50,6 +46,14 @@ public class VTypeHelperTest
     private static final Display displayNone = newDisplay(Double.NaN, Double.NaN,
             Double.NaN, "", NumberFormats.toStringFormat(), Double.NaN, Double.NaN,
             Double.NaN, Double.NaN, Double.NaN);
+    private VType testValue;
+    private VTypeHelperBean expectedData;
+
+    public VTypeHelperTest(VType value, VTypeHelperBean data) {
+        this.testValue = value;
+        this.expectedData = data;
+    }
+
     private VType testValue;
     private VTypeHelperBean expectedData;
 
@@ -134,7 +138,7 @@ public class VTypeHelperTest
             assertThat(VTypeHelper.getSize(testValue), is(1));
         }
     }
- 
+
     @Test
     public void testGetTimestamp() {
         VDouble value = newVDouble(1.0, alarmNone, testTime, displayNone);
@@ -145,6 +149,78 @@ public class VTypeHelperTest
     public void testGetTimestampWhenNull() {
         VType value = new VType(){}; // Create instance of empty interface
         assertEquals(VTypeHelper.getTimestamp(value), null);
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> vtypeInstances() {
+       return Arrays.asList(new Object[][] {
+          { null,
+               new VTypeHelperBean(BasicDataType.UNKNOWN, Double.NaN, true) },
+          { ValueFactory.newVByte(new Byte("4"),
+                   ValueFactory.alarmNone(),
+                   ValueFactory.timeNow(),
+                   ValueFactory.displayNone()),
+               new VTypeHelperBean(BasicDataType.BYTE, 4.0, true)},
+          { ValueFactory.newVDouble(1.0),
+               new VTypeHelperBean(BasicDataType.DOUBLE, 1.0, true)},
+          { ValueFactory.newVEnum(1, Arrays.asList(new String[] {"zero", "one"}),
+                  ValueFactory.alarmNone(),
+                  ValueFactory.timeNow()),
+               new VTypeHelperBean(BasicDataType.ENUM, 1.0, true) },
+          { ValueFactory.newVFloat(0.5f,
+                  ValueFactory.alarmNone(),
+                  ValueFactory.timeNow(),
+                  ValueFactory.displayNone()),
+               new VTypeHelperBean(BasicDataType.FLOAT, 0.5, true) },
+          { ValueFactory.newVInt(42,
+                  ValueFactory.alarmNone(),
+                  ValueFactory.timeNow(),
+                  ValueFactory.displayNone()),
+               new VTypeHelperBean(BasicDataType.INT, 42.0, true) },
+          { ValueFactory.newVShort(new Short("21"),
+                  ValueFactory.alarmNone(),
+                  ValueFactory.timeNow(),
+                  ValueFactory.displayNone()),
+              new VTypeHelperBean(BasicDataType.SHORT, 21.0, true) },
+          { ValueFactory.newVString("test",
+                  ValueFactory.alarmNone(),
+                  ValueFactory.timeNow()),
+              new VTypeHelperBean(BasicDataType.STRING, Double.NaN, true) },
+       });
+    }
+
+    @Test
+    public void getBasicTypeDataTest() {
+        assertThat(VTypeHelper.getBasicDataType(testValue), is(expectedData.btype));
+    }
+
+    @Test
+    public void getDoubleReturnsDoubleReprOfValueIfNotSTRINGorUNKNOWN() {
+        if (expectedData.btype != BasicDataType.UNKNOWN &&
+                expectedData.btype != BasicDataType.STRING) {
+            assertThat(VTypeHelper.getDouble(testValue), is(expectedData.dval));
+        }
+    }
+
+    @Test
+    public void getDoubleReturnsNaNIfTypeUNKNOWN() {
+        if (expectedData.btype == BasicDataType.UNKNOWN) {
+            assertThat(VTypeHelper.getDouble(testValue), is(Double.NaN));
+        }
+    }
+
+    @Test
+    public void getDoubleReturnsNaNIfTypeSTRING() {
+        if (expectedData.btype == BasicDataType.STRING) {
+            assertThat(VTypeHelper.getDouble(testValue), is(Double.NaN));
+        }
+    }
+
+    @Test
+    public void getSizeIsOneForScalarOtherwiseArrayLength() {
+        if (expectedData.isScalar) {
+            assertThat(VTypeHelper.getSize(testValue), is(1));
+        }
     }
 
 }

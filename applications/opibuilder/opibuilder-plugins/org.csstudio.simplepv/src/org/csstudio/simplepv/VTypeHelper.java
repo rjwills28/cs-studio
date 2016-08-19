@@ -49,8 +49,8 @@ import org.diirt.vtype.ValueUtil;
  */
 public class VTypeHelper {
 
-    public static final int DEFAULT_PRECISION = 4;
-    public static final int UNSET_PRECISION = -1;
+    public static final int DEFAULT_PRECISION = 4;//$NON-NLS-1$
+    public static final int UNSET_PRECISION = -1;//$NON-NLS-1$
     public static final String HEX_PREFIX = "0x"; //$NON-NLS-1$
     /**
      * The max count of values to be formatted into string. The value beyond
