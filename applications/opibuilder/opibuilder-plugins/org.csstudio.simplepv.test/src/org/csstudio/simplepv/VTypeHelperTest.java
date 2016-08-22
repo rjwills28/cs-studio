@@ -54,14 +54,6 @@ public class VTypeHelperTest
         this.expectedData = data;
     }
 
-    private VType testValue;
-    private VTypeHelperBean expectedData;
-
-    public VTypeHelperTest(VType value, VTypeHelperBean data) {
-        this.testValue = value;
-        this.expectedData = data;
-    }
-
     @Before
     public void setUp() throws Exception {
         testTime = newTime(Instant.ofEpochSecond(1354719441, 521786982));
@@ -149,78 +141,6 @@ public class VTypeHelperTest
     public void testGetTimestampWhenNull() {
         VType value = new VType(){}; // Create instance of empty interface
         assertEquals(VTypeHelper.getTimestamp(value), null);
-    }
-
-    @Parameterized.Parameters
-    public static Collection<Object[]> vtypeInstances() {
-       return Arrays.asList(new Object[][] {
-          { null,
-               new VTypeHelperBean(BasicDataType.UNKNOWN, Double.NaN, true) },
-          { ValueFactory.newVByte(new Byte("4"),
-                   ValueFactory.alarmNone(),
-                   ValueFactory.timeNow(),
-                   ValueFactory.displayNone()),
-               new VTypeHelperBean(BasicDataType.BYTE, 4.0, true)},
-          { ValueFactory.newVDouble(1.0),
-               new VTypeHelperBean(BasicDataType.DOUBLE, 1.0, true)},
-          { ValueFactory.newVEnum(1, Arrays.asList(new String[] {"zero", "one"}),
-                  ValueFactory.alarmNone(),
-                  ValueFactory.timeNow()),
-               new VTypeHelperBean(BasicDataType.ENUM, 1.0, true) },
-          { ValueFactory.newVFloat(0.5f,
-                  ValueFactory.alarmNone(),
-                  ValueFactory.timeNow(),
-                  ValueFactory.displayNone()),
-               new VTypeHelperBean(BasicDataType.FLOAT, 0.5, true) },
-          { ValueFactory.newVInt(42,
-                  ValueFactory.alarmNone(),
-                  ValueFactory.timeNow(),
-                  ValueFactory.displayNone()),
-               new VTypeHelperBean(BasicDataType.INT, 42.0, true) },
-          { ValueFactory.newVShort(new Short("21"),
-                  ValueFactory.alarmNone(),
-                  ValueFactory.timeNow(),
-                  ValueFactory.displayNone()),
-              new VTypeHelperBean(BasicDataType.SHORT, 21.0, true) },
-          { ValueFactory.newVString("test",
-                  ValueFactory.alarmNone(),
-                  ValueFactory.timeNow()),
-              new VTypeHelperBean(BasicDataType.STRING, Double.NaN, true) },
-       });
-    }
-
-    @Test
-    public void getBasicTypeDataTest() {
-        assertThat(VTypeHelper.getBasicDataType(testValue), is(expectedData.btype));
-    }
-
-    @Test
-    public void getDoubleReturnsDoubleReprOfValueIfNotSTRINGorUNKNOWN() {
-        if (expectedData.btype != BasicDataType.UNKNOWN &&
-                expectedData.btype != BasicDataType.STRING) {
-            assertThat(VTypeHelper.getDouble(testValue), is(expectedData.dval));
-        }
-    }
-
-    @Test
-    public void getDoubleReturnsNaNIfTypeUNKNOWN() {
-        if (expectedData.btype == BasicDataType.UNKNOWN) {
-            assertThat(VTypeHelper.getDouble(testValue), is(Double.NaN));
-        }
-    }
-
-    @Test
-    public void getDoubleReturnsNaNIfTypeSTRING() {
-        if (expectedData.btype == BasicDataType.STRING) {
-            assertThat(VTypeHelper.getDouble(testValue), is(Double.NaN));
-        }
-    }
-
-    @Test
-    public void getSizeIsOneForScalarOtherwiseArrayLength() {
-        if (expectedData.isScalar) {
-            assertThat(VTypeHelper.getSize(testValue), is(1));
-        }
     }
 
 }
