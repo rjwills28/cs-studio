@@ -15,13 +15,14 @@
  ******************************************************************************/
 package org.csstudio.scan.server.internal;
 
+import static org.csstudio.scan.server.app.Application.logger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.csstudio.scan.ScanSystemPreferences;
 import org.csstudio.scan.command.ScanCommand;
@@ -77,7 +78,7 @@ public class ScanServerImpl implements ScanServer
     @Override
     public ScanServerInfo getInfo() throws Exception
     {
-        return new ScanServerInfo("V" + ScanServer.VERSION + " (" + Application.getBundleVersion() + ")",
+        return new ScanServerInfo(Application.getBundleVersion(),
                 start_time,
                 ScanSystemPreferences.getScanConfigPath(),
                 ScanSystemPreferences.getSimulationConfigPath(),
@@ -113,8 +114,7 @@ public class ScanServerImpl implements ScanServer
             }
             catch (Exception ex)
             {
-                Logger.getLogger(getClass().getName()).log(Level.WARNING,
-                        "Error reading device context", ex);
+                logger.log(Level.WARNING, "Error reading device context", ex);
             }
         }
         return new Device[0];
@@ -156,7 +156,7 @@ public class ScanServerImpl implements ScanServer
             log_out.println("--------");
 
             // Simulate
-            final SimulationContext simulation = new SimulationContext(log_out);
+            final SimulationContext simulation = new SimulationContext(jython, log_out);
             simulation.simulate(scan);
 
             // Close log
@@ -177,7 +177,7 @@ public class ScanServerImpl implements ScanServer
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Scan simulation failed", ex);
+            logger.log(Level.WARNING, "Scan simulation failed", ex);
             throw ex;
         }
     }
@@ -217,13 +217,13 @@ public class ScanServerImpl implements ScanServer
             final DeviceContext devices = new DeviceContext();
 
             // Submit scan to engine for execution
-            final ExecutableScan scan = new ExecutableScan(jython, scan_name, devices, pre_impl, main_impl, post_impl);
+            final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl);
             scan_engine.submit(scan, queue);
             return scan.getId();
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Scan submission failed", ex);
+            logger.log(Level.WARNING, "Scan submission failed", ex);
             throw ex;
         }
     }
@@ -233,7 +233,6 @@ public class ScanServerImpl implements ScanServer
     {
         final double threshold = ScanSystemPreferences.getOldScanRemovalMemoryThreshold();
         int count = 0;
-        final Logger logger = Logger.getLogger(getClass().getName());
 
         MemoryInfo used = new MemoryInfo();
         while (used.getMemoryPercentage() > threshold && count < 10)
@@ -429,7 +428,7 @@ public class ScanServerImpl implements ScanServer
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error removing scan", ex);
+            logger.log(Level.WARNING, "Error removing scan", ex);
             throw new Exception("Error removing scan", ex);
         }
     }
@@ -444,7 +443,7 @@ public class ScanServerImpl implements ScanServer
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error removing completed scans", ex);
+            logger.log(Level.WARNING, "Error removing completed scans", ex);
             throw new Exception("Error removing completed scans", ex);
         }
     }

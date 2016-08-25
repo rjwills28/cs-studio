@@ -28,11 +28,11 @@ import org.csstudio.trends.databrowser2.model.Model;
 import org.csstudio.trends.databrowser2.model.ModelItem;
 import org.csstudio.trends.databrowser2.model.PVItem;
 import org.csstudio.trends.databrowser2.model.TimeHelper;
+import org.diirt.util.time.TimeDuration;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.diirt.util.time.TimeDuration;
 
 /** Base for Eclipse Job for exporting data from Model to file
  *  @author Kay Kasemir
@@ -180,9 +180,10 @@ abstract public class ExportJob extends Job
      */
     protected void printItemInfo(final PrintStream out, final ModelItem item)
     {
-        out.println(comment + "Channel: " + item.getName());
-        if (! item.getName().equals(item.getDisplayName()))
-            out.println(comment + "Name   : " + item.getDisplayName());
+        out.println(comment + "Channel: " + item.getResolvedName());
+        // If display name differs from PV, show the _resolved_ version
+        if (! item.getResolvedName().equals(item.getResolvedDisplayName()))
+            out.println(comment + "Name   : " + item.getResolvedDisplayName());
         if (item instanceof PVItem)
         {
             final PVItem pv = (PVItem) item;
@@ -222,10 +223,10 @@ abstract public class ExportJob extends Job
                 ValueIterator iter;
                 if (source == Source.OPTIMIZED_ARCHIVE  &&  optimize_parameter > 1)
                     iter = reader.getOptimizedValues(archive.getKey(),
-                            item.getName(), start, end, (int)optimize_parameter);
+                            item.getResolvedName(), start, end, (int)optimize_parameter);
                 else
                 {
-                    iter = reader.getRawValues(archive.getKey(), item.getName(), start, end);
+                    iter = reader.getRawValues(archive.getKey(), item.getResolvedName(), start, end);
                     if (source == Source.LINEAR_INTERPOLATION && optimize_parameter >= 1)
                         iter = new LinearValueIterator(iter, TimeDuration.ofSeconds(optimize_parameter));
                 }
@@ -234,7 +235,7 @@ abstract public class ExportJob extends Job
             }
             catch (Exception ex)
             {
-                Logger.getLogger(getClass().getName()).log(Level.FINE, "Export error for " + item.getName(), ex);
+                Logger.getLogger(getClass().getName()).log(Level.FINE, "Export error for " + item.getResolvedName(), ex);
                 if (error == null)
                     error = ex;
             }

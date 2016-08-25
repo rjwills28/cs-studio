@@ -29,6 +29,11 @@ import org.csstudio.simplepv.VTypeHelper;
 import org.csstudio.swt.widgets.figures.TextFigure;
 import org.csstudio.swt.widgets.figures.TextInputFigure;
 import org.csstudio.swt.widgets.figures.TextInputFigure.SelectorType;
+import org.diirt.vtype.Array;
+import org.diirt.vtype.Scalar;
+import org.diirt.vtype.VEnum;
+import org.diirt.vtype.VNumberArray;
+import org.diirt.vtype.VType;
 import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.gef.DragTracker;
@@ -37,11 +42,6 @@ import org.eclipse.gef.RequestConstants;
 import org.eclipse.gef.tools.SelectEditPartTracker;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
-import org.diirt.vtype.Array;
-import org.diirt.vtype.Scalar;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VNumberArray;
-import org.diirt.vtype.VType;
 
 /**
  * The editpart for text input widget.)
@@ -63,6 +63,10 @@ public class TextInputEditpart extends TextUpdateEditPart {
         return (TextInputModel) getModel();
     }
 
+    protected void setDelegate(ITextInputEditPartDelegate delegate) {
+        this.delegate = delegate;
+    }
+
     @Override
     protected IFigure doCreateFigure() {
         initFields();
@@ -70,11 +74,11 @@ public class TextInputEditpart extends TextUpdateEditPart {
         if(shouldBeTextInputFigure()){
             TextInputFigure textInputFigure = (TextInputFigure) createTextFigure();
             initTextFigure(textInputFigure);
-            delegate = new Draw2DTextInputEditpartDelegate(
-                    this, getWidgetModel(), textInputFigure);
+            setDelegate(new Draw2DTextInputEditpartDelegate(
+                    this, getWidgetModel(), textInputFigure));
 
         }else{
-            delegate = new NativeTextEditpartDelegate(this, getWidgetModel());
+            setDelegate(new NativeTextEditpartDelegate(this, getWidgetModel()));
         }
 
         getPVWidgetEditpartDelegate().setUpdateSuppressTime(-1);
@@ -86,7 +90,7 @@ public class TextInputEditpart extends TextUpdateEditPart {
     /**
      * @return true if it should use Draw2D {@link TextInputFigure}.
      */
-    private boolean shouldBeTextInputFigure(){
+    protected boolean shouldBeTextInputFigure(){
         TextInputModel model = getWidgetModel();
         if(model.getStyle() == Style.NATIVE)
             return false;
@@ -136,6 +140,7 @@ public class TextInputEditpart extends TextUpdateEditPart {
                 if (pv != null) {
                     if (pvLoadLimitsListener == null)
                         pvLoadLimitsListener = new IPVListener.Stub() {
+                            @Override
                             public void valueChanged(IPV pv) {
                                 VType value = pv.getValue();
                                 if (value != null
@@ -417,13 +422,17 @@ public class TextInputEditpart extends TextUpdateEditPart {
 
 
     private int[] parseCharArray(final String text, int currentLength) {
-        int[] iString = new int[currentLength];
+        // Turn text into array of character codes,
+        // at least as long as the current value of the PV.
+        // New text may be longer (and IOC can then refuse the extra chars)
+        final int newLength = text.length();
+        int[] iString = new int[Math.max(newLength, currentLength)];
         char[] textChars = text.toCharArray();
 
-        for (int ii = 0; ii < text.length(); ii++) {
+        for (int ii = 0; ii < newLength; ii++) {
             iString[ii] = Integer.valueOf(textChars[ii]);
         }
-        for (int ii = text.length(); ii < currentLength; ii++) {
+        for (int ii = newLength; ii < currentLength; ii++) {
             iString[ii] = 0;
         }
         return iString;
