@@ -7,9 +7,9 @@
  ******************************************************************************/
 package org.csstudio.vtype.pv.internal;
 
-import org.csstudio.platform.libs.epics.EpicsPlugin;
-import org.csstudio.platform.libs.epics.EpicsPlugin.MonitorMask;
+import org.csstudio.vtype.pv.PVPlugin;
 import org.csstudio.vtype.pv.jca.JCA_PVFactory;
+import org.csstudio.vtype.pv.mqtt.MQTT_PVFactory;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 
@@ -19,42 +19,23 @@ import org.eclipse.core.runtime.preferences.IPreferencesService;
 @SuppressWarnings("nls")
 public class Preferences
 {
-    public static String defaultType()
+    private static String getString(final String plugin, final String setting, final String default_value)
     {
         final IPreferencesService service = Platform.getPreferencesService();
         if (service == null)
-            return JCA_PVFactory.TYPE;
-        return service.getString(Activator.ID, "default_type", JCA_PVFactory.TYPE, null);
-
+            return default_value;
+        return service.getString(plugin, setting, default_value, null);
     }
 
-    public static boolean usePureJava()
+    public static String defaultType()
     {
-        return EpicsPlugin.getDefault().usePureJava();
+        return getString(PVPlugin.ID, "default_type", JCA_PVFactory.TYPE);
+
     }
 
-    public static MonitorMask monitorMask()
+    public static String getMQTTBroker()
     {
-        return EpicsPlugin.getDefault().getMonitorMask();
+        return getString(PVPlugin.ID, "mqtt_broker", MQTT_PVFactory.BROKER_URL);
     }
 
-    public static boolean monitorProperties()
-    {
-        return EpicsPlugin.getDefault().isDbePropertySupported();
-    }
-
-    /** @return Support var array, don't support, or use auto-detect (<code>null</code>) */
-    public static Boolean isVarArraySupported()
-    {
-        return EpicsPlugin.getDefault().getVarArraySupported();
-    }
-
-    public static int largeArrayThreshold()
-    {
-        int threshold = 100000;
-        final IPreferencesService service = Platform.getPreferencesService();
-        if (service != null)
-            threshold = service.getInt(Activator.ID, "large_array_threshold", threshold, null);
-        return threshold;
-    }
 }
