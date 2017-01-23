@@ -43,8 +43,9 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public final class DIIRTPreferences {
 
-    public static final String PREF_CONFIGURATION_DIRECTORY = "diirt.home";
     public static final Logger LOGGER                       = Logger.getLogger(DIIRTPreferences.class.getName());
+    public static final String PREF_CONFIGURATION_DIRECTORY = "diirt.home";
+    public static final String QUALIFIER                    = "org.csstudio.diirt.util.core.preferences";
 
     private static final boolean BOOLEAN_DEFAULT_DEFAULT  = false;
     private static final String  DEFAULT_PREFIX           = "_default_.";
@@ -54,7 +55,6 @@ public final class DIIRTPreferences {
     private static final long    LONG_DEFAULT_DEFAULT     = 0L;
     private static final String  PLATFORM_URI_PREFIX      = "platform:";
     private static final String  PREF_DEFAULT_INITIALIZED = "diirt.default.initialized";
-    private static final String  QUALIFIER                = "org.csstudio.diirt.util.preferences";
     private static final String  STRING_DEFAULT_DEFAULT   = "";
     private static final String  USER_HOME_PARAMETER      = "@user.home";
 
@@ -266,9 +266,14 @@ public final class DIIRTPreferences {
 
         try {
             ds = DataSources.fromFile(diirtHome);
+        } catch ( JAXBException | IOException ex ) {
+            LOGGER.log(Level.WARNING, MessageFormat.format("Problems opening and/or reading datasource.xml [{0}].\n{1}", diirtHome, ExceptionUtilities.reducedStackTrace(ex, "org.csstudio")));
+        }
+
+        try {
             ca = ChannelAccess.fromFile(diirtHome);
         } catch ( JAXBException | IOException ex ) {
-            LOGGER.log(Level.WARNING, MessageFormat.format("Problems opening and/or reading file(s) [{0}].", diirtHome), ex);
+            LOGGER.log(Level.WARNING, MessageFormat.format("Problems opening and/or reading ca/ca.xml [{0}].\n{1}", diirtHome, ExceptionUtilities.reducedStackTrace(ex, "org.csstudio")));
         }
 
         ds.updateDefaultsAndValues(this);
