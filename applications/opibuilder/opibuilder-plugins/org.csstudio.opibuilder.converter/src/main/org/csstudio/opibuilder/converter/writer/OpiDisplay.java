@@ -66,7 +66,7 @@ public class OpiDisplay {
             new OpiInt(context, "grid_space", d.getGridSize());
 
         // Always set zoom_to_fit_all on converted panels.
-        new OpiBoolean(context, "zoom_to_fit_all", true);
+        new OpiBoolean(context, "auto_zoom_to_fit_all", true);
     }
 
 }
