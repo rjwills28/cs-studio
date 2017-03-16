@@ -64,6 +64,9 @@ public class OpiDisplay {
         new OpiBoolean(context, "show_grid", d.isShowGrid());
         if (d.getAttribute("gridSize").isExistInEDL())
             new OpiInt(context, "grid_space", d.getGridSize());
+
+        // Always set zoom_to_fit_all on converted panels.
+        new OpiBoolean(context, "zoom_to_fit_all", true);
     }
 
 }
