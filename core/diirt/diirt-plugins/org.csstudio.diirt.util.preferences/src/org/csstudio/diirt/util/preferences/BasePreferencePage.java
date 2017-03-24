@@ -185,6 +185,7 @@ public abstract class BasePreferencePage extends PreferencePage implements IWork
     @Override
     public boolean performOk ( ) {
 
+        editors.keySet().stream().forEach(e -> e.store());
         DIIRTPreferencesPlugin.get().performFlush();
 
         if ( editors.values().stream().anyMatch(e -> e.isRestartRequired()) ) {
@@ -362,6 +363,38 @@ public abstract class BasePreferencePage extends PreferencePage implements IWork
 
             if ( !l.isDisposed() ) {
                 l.setForeground(captionColor);
+            }
+
+        });
+
+    }
+
+    /**
+     * Updates the color of the given {@code editor}'s caption, depending on
+     * the current {@code error} value. If {@code false}, the caption foreground
+     * color will be {@link SWT#COLOR_WIDGET_FOREGROUND}, otherwise
+     * {@link SWT#COLOR_RED}.
+     *
+     * @param editor The {@link FieldEditor} whose caption's color must be
+     *            updated.
+     * @param parent The {@link Composite} owning the given {@code editor}.
+     * @param error {@code true} if the caption must be colored in
+     *            {@link SWT#COLOR_RED}.
+     * @param tooltip The tooltip assigned to the {@code editor}'s caption.
+     */
+    protected void updateCaptionColor ( final Composite parent, final FieldEditor editor, boolean error, final String tooltip ) {
+
+        final Color captionColor = error
+                                 ? SWTResourceManager.getColor(SWT.COLOR_RED)
+                                 : SWTResourceManager.getColor(SWT.COLOR_WIDGET_FOREGROUND);
+
+        Display.getDefault().asyncExec(() -> {
+
+            Label l = editor.getLabelControl(parent);
+
+            if ( !l.isDisposed() ) {
+                l.setForeground(captionColor);
+                l.setToolTipText(tooltip);
             }
 
         });
