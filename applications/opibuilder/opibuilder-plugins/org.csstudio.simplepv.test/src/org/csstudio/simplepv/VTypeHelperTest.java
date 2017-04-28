@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.time.Instant;
 
+import org.diirt.util.text.NumberFormats;
 import org.diirt.vtype.Alarm;
 import org.diirt.vtype.AlarmSeverity;
 import org.diirt.vtype.Display;
@@ -31,9 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import org.diirt.util.text.NumberFormats;
-import org.csstudio.simplepv.VTypeHelper;
 
 /** JUnit test for VTypeHelper methods
  *
