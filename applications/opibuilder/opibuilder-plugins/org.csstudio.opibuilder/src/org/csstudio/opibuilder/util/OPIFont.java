@@ -66,7 +66,10 @@ public class OPIFont{
 
     private int pixelsToPoints(int pixels) {
         float result = (float) pixels * POINTS_PER_INCH / getDPI().y;
-        return Math.round(result);
+        int rounded_result = Math.round(result);
+        System.out.println("Converted " + pixels + " pixels to " + result +
+                " points using a DPI of " + getDPI().y + ", and rounded to " + rounded_result + " points.");
+        return rounded_result;
     }
 
     /**Returns the Macro Name of the OPIFont.
