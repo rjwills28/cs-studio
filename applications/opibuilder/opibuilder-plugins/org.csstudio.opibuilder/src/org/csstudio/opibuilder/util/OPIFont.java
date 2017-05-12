@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.opibuilder.util;
 
+import java.util.logging.Level;
+
+import org.csstudio.opibuilder.OPIBuilderPlugin;
 import org.csstudio.opibuilder.preferences.PreferencesHelper;
 import org.csstudio.ui.util.CustomMediaFactory;
 import org.eclipse.swt.graphics.Font;
@@ -67,7 +70,7 @@ public class OPIFont{
     private int pixelsToPoints(int pixels) {
         float result = (float) pixels * POINTS_PER_INCH / getDPI().y;
         int rounded_result = Math.round(result);
-        System.out.println("Converted " + pixels + " pixels to " + result +
+        OPIBuilderPlugin.getLogger().log(Level.INFO, "Converted " + pixels + " pixels to " + result +
                 " points using a DPI of " + getDPI().y + ", and rounded to " + rounded_result + " points.");
         return rounded_result;
     }
