@@ -180,24 +180,59 @@ public class WidgetConnectionEditPart extends AbstractConnectionEditPart {
                     .addPropertyChangeListener(new PropertyChangeListener() {
                         @Override
                         public void propertyChange(PropertyChangeEvent evt) {
-                            getConnectionFigure().setLineJumpAdd(
-                                    getWidgetModel().getLineJumpAdd());
+                            getConnectionFigure().setLineJumpAdd(getWidgetModel().getLineJumpAdd());
+
+                            Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    getConnectionFigure().repaint();
+                                }
+                            };
+                            WidgetIgnorableUITask task = new WidgetIgnorableUITask(
+                                    getWidgetModel().getProperty(ConnectionModel.PROP_LINE_JUMP_ADD), runnable,
+                                    getViewer().getControl().getDisplay());
+                            GUIRefreshThread.getInstance(getExecutionMode() == ExecutionMode.EDIT_MODE)
+                                    .addIgnorableTask(task);
+
                         }
                     });
             getWidgetModel().getProperty(ConnectionModel.PROP_LINE_JUMP_SIZE)
                     .addPropertyChangeListener(new PropertyChangeListener() {
                         @Override
                         public void propertyChange(PropertyChangeEvent evt) {
-                            getConnectionFigure().setLineJumpSize(
-                                    getWidgetModel().getLineJumpSize());
+                            getConnectionFigure().setLineJumpSize(getWidgetModel().getLineJumpSize());
+
+                            Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    getConnectionFigure().repaint();
+                                }
+                            };
+                            WidgetIgnorableUITask task = new WidgetIgnorableUITask(
+                                    getWidgetModel().getProperty(ConnectionModel.PROP_LINE_JUMP_SIZE), runnable,
+                                    getViewer().getControl().getDisplay());
+                            GUIRefreshThread.getInstance(getExecutionMode() == ExecutionMode.EDIT_MODE)
+                                    .addIgnorableTask(task);
+
                         }
                     });
             getWidgetModel().getProperty(ConnectionModel.PROP_LINE_JUMP_STYLE)
                     .addPropertyChangeListener(new PropertyChangeListener() {
                         @Override
                         public void propertyChange(PropertyChangeEvent evt) {
-                            getConnectionFigure().setLineJumpStyle(
-                                    getWidgetModel().getLineJumpStyle());
+                            getConnectionFigure().setLineJumpStyle(getWidgetModel().getLineJumpStyle());
+
+                            Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    getConnectionFigure().repaint();
+                                }
+                            };
+                            WidgetIgnorableUITask task = new WidgetIgnorableUITask(
+                                    getWidgetModel().getProperty(ConnectionModel.PROP_LINE_JUMP_SIZE), runnable,
+                                    getViewer().getControl().getDisplay());
+                            GUIRefreshThread.getInstance(getExecutionMode() == ExecutionMode.EDIT_MODE)
+                                    .addIgnorableTask(task);
                         }
                     });
             getWidgetModel().getProperty(ConnectionModel.PROP_IS_LOADED_FROM_LINKING_CONTAINER)
@@ -251,6 +286,7 @@ public class WidgetConnectionEditPart extends AbstractConnectionEditPart {
             // Allows the removal of the connection model element
             installEditPolicy(EditPolicy.CONNECTION_ROLE,
                     new ConnectionEditPolicy() {
+                        @Override
                         protected Command getDeleteCommand(GroupRequest request) {
                             return new ConnectionDeleteCommand(getWidgetModel());
                         }
@@ -287,7 +323,7 @@ public class WidgetConnectionEditPart extends AbstractConnectionEditPart {
         return (result < 0) ? (360d + result) : result;
     }
 
-    PointList getIntersectionpoints(PolylineJumpConnection connection) {
+    PointList getIntersectionPoints(PolylineJumpConnection connection) {
         intersectionMap = new HashMap<Point, PointList>();
         PointList pointsInConnection = getPointListOfConnectionForConnection(connection);
         ConnectionModel widgetModel = getWidgetModel();
@@ -307,9 +343,33 @@ public class WidgetConnectionEditPart extends AbstractConnectionEditPart {
         }
         List<ConnectionModel> connectionList = rootDisplayModel.getConnectionList();
 
-        for(int i=0; (i+1)<pointsInConnection.size(); i++) {
+        for(int i=0; (i+1)<pointsInConnection.size();) {
             Point x1y1 = pointsInConnection.getPoint(i);
             Point x2y2 = pointsInConnection.getPoint(i+1);
+            /* The Manhattan connection in CS-Studio always has at least 3 segments, even if
+             * they are invisible to the user, because he sees a straight line. But if these
+             * invisible segments fall exactly where this connection intersects another
+             * connection, this may confuse the logic into thinking that the line jump
+             * should not be drawn because of the limitation that the line jump cannot be
+             * drawn too close to the bend in the connection.
+             * To overcome this problem, we do not simply follow the line segments, but
+             * check whether subsequent line segments are actually in the same line
+             * (vertically or horizontally). If this is the case, we join such segments
+             * until we reach an actual bend or the end of the connection.
+             * To achieve this we need to manipulate the index to skip the joined
+             * segments.
+             */
+            i++;   // increase 'i' once for the next point (simple case)
+            for (int j = (i+1); j < pointsInConnection.size(); j++) {
+                // we may increase 'i' some more if we detect joined segments
+                Point p = pointsInConnection.getPoint(j);
+                if ((p.x() == x1y1.x()) || (p.y() == x1y1.y())) {
+                    x2y2 = p;
+                    i = j;
+                } else {
+                    break;
+                }
+            }
             int x1 = x1y1.x;
             int y1 = x1y1.y;
             int x2 = x2y2.x;
@@ -452,11 +512,12 @@ public class WidgetConnectionEditPart extends AbstractConnectionEditPart {
             // Edge Case: While calculating intersection points, iterating on connections does
             // not guarantee order. Sort so that points are in order.
             Collections.sort(intersectionPointsList, new Comparator<Point>() {
-                   public int compare(Point x1_, Point x2_) {
-                     int result = Double.compare(x1_.getDistance(x1y1), x2_.getDistance(x1y1));
-                     return result;
-                  }
-                });
+                @Override
+                public int compare(Point x1_, Point x2_) {
+                    int result = Double.compare(x1_.getDistance(x1y1), x2_.getDistance(x1y1));
+                    return result;
+                }
+            });
 
             for(Point p : intersectionPointsList) {
                 intersections.addPoint(p);
@@ -561,10 +622,7 @@ public class WidgetConnectionEditPart extends AbstractConnectionEditPart {
             }
             //has points, use points for routing
             router = new FixedPointsConnectionRouter();
-            if (getWidgetModel().isLoadedFromLinkedOpi() == true) {
-                ((FixedPointsConnectionRouter) router).setScrollPane(getWidgetModel().getScrollPane());
-                ((FixedPointsConnectionRouter) router).setConnectionFigure(connection);
-            }
+            ((FixedPointsConnectionRouter) router).setConnectionModel(getWidgetModel());
             connection.setConnectionRouter(router);
             refreshBendpoints(connection);
             return;
