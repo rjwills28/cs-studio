@@ -5,6 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
+
 package org.csstudio.simplepv;
 
 import static org.diirt.vtype.ValueFactory.newAlarm;
@@ -39,11 +40,14 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public class VTypeHelperTest
 {
+
     private Time testTime;
     private static final Alarm alarmNone = newAlarm(AlarmSeverity.NONE, "NONE");
     private static final Display displayNone = newDisplay(Double.NaN, Double.NaN,
             Double.NaN, "", NumberFormats.toStringFormat(), Double.NaN, Double.NaN,
             Double.NaN, Double.NaN, Double.NaN);
+
+
     private VType testValue;
     private VTypeHelperBean expectedData;
 
@@ -55,6 +59,18 @@ public class VTypeHelperTest
     @Before
     public void setUp() throws Exception {
         testTime = newTime(Instant.ofEpochSecond(1354719441, 521786982));
+    }
+
+    @Test
+    public void testGetTimestamp() {
+        VDouble value = newVDouble(1.0, alarmNone, testTime, displayNone);
+        assertEquals(VTypeHelper.getTimestamp(value), testTime.getTimestamp());
+    }
+
+    @Test
+    public void testGetTimestampWhenNull() {
+        VType value = new VType(){}; // Create instance of empty interface
+        assertEquals(VTypeHelper.getTimestamp(value), null);
     }
 
     @Parameterized.Parameters
@@ -127,18 +143,6 @@ public class VTypeHelperTest
         if (expectedData.isScalar) {
             assertThat(VTypeHelper.getSize(testValue), is(1));
         }
-    }
-
-    @Test
-    public void testGetTimestamp() {
-        VDouble value = newVDouble(1.0, alarmNone, testTime, displayNone);
-        assertEquals(VTypeHelper.getTimestamp(value), testTime.getTimestamp());
-    }
-
-    @Test
-    public void testGetTimestampWhenNull() {
-        VType value = new VType(){}; // Create instance of empty interface
-        assertEquals(VTypeHelper.getTimestamp(value), null);
     }
 
 }
