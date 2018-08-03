@@ -181,6 +181,23 @@ public class RelativeTime implements Cloneable
         // leave as is
         rollover(MONTHS, 12);
     }
+    
+    public long seconds()
+    {
+
+    	int [] conversions = new int [] {12, 31, 24, 60, 60, 1000};
+    	long seconds = 0;
+    		for (int c = 0; c < 7; c++) {
+    			long rolling_component = rel_time[c];
+        		for (int n = c; n < 6; n++)
+        			rolling_component *= conversions[n];
+        		seconds += rolling_component;
+
+    		}
+    			
+    	return seconds;
+    	
+    }
 
     /** Roll one relative time field into the next bigger one
      *  when it exceeds the limit
