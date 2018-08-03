@@ -88,7 +88,7 @@ public class RelativeTime implements Cloneable
         MINUTE_TOKEN,
         SECOND_TOKEN
     };
-
+    
     /** Construct new relative time information. */
     public RelativeTime()
     {
@@ -167,6 +167,29 @@ public class RelativeTime implements Cloneable
         rel_time[MILLISECONDS] += frac_seconds * 1000; // 1000 millis per sec
         normalize();
     }
+    /** Convert RelativeTime uniquely into seconds.
+     *  @return seconds The time array converted to seconds
+     *  One year (y) converts to 365 days; by-passing the month & day multipliers
+     */
+    public long convertToSeconds()
+    {
+        final int number_time_units = 7;
+        int [] conversions = new int [] {12, 31, 24, 60, 60, 1000};
+        long seconds = 0;
+            for (int c = 0; c < number_time_units; c++) {
+                long rolling_component = rel_time[c];
+                int first_conversion_unit = c;
+                if (c == 0) {
+                    rolling_component *= 365;
+                    first_conversion_unit = 2;
+                }
+                for (int n = first_conversion_unit; n < number_time_units - 1; n++)
+                    rolling_component *= conversions[n];
+                
+                seconds += rolling_component;
+        }
+        return seconds;
+    }
 
     /** (Try to) normalize the relative time by turning 70 seconds
      *  into 1 minute, 10 seconds etc.
@@ -180,23 +203,6 @@ public class RelativeTime implements Cloneable
         // How many DAYS in a MONTH? 30?
         // leave as is
         rollover(MONTHS, 12);
-    }
-    
-    public long seconds()
-    {
-
-    	int [] conversions = new int [] {12, 31, 24, 60, 60, 1000};
-    	long seconds = 0;
-    		for (int c = 0; c < 7; c++) {
-    			long rolling_component = rel_time[c];
-        		for (int n = c; n < 6; n++)
-        			rolling_component *= conversions[n];
-        		seconds += rolling_component;
-
-    		}
-    			
-    	return seconds;
-    	
     }
 
     /** Roll one relative time field into the next bigger one

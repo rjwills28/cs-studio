@@ -26,6 +26,7 @@ import org.csstudio.apputil.macros.MacroTable;
 import org.csstudio.apputil.macros.MacroUtil;
 import org.csstudio.apputil.time.PeriodFormat;
 import org.csstudio.apputil.time.RelativeTime;
+import org.csstudio.apputil.time.RelativeTimeParser;
 import org.csstudio.apputil.time.StartEndTimeParser;
 import org.csstudio.archive.vtype.TimestampHelper;
 import org.csstudio.swt.rtplot.util.RGBFactory;
@@ -703,6 +704,34 @@ public class Model
     {
         if (scroll_enabled)
             return new RelativeTime(-TimeDuration.toSecondsDouble(time_span)).toString();
+        else
+            return TimestampHelper.format(getStartTime());
+    }
+
+    /** @return String representation of start time. While scrolling, this is
+     *          a relative time (given by the alt_spec_string, if equivalent to time_span time), 
+     *          otherwise an absolute date/time.
+     */
+    synchronized public String getStartSpecification(String alt_spec_string)
+    {
+        if (scroll_enabled) {
+            RelativeTime spec_relative_time = new RelativeTime(-TimeDuration.toSecondsDouble(time_span));
+            try {
+                RelativeTime alt_spec_relative_time = RelativeTimeParser.parse(alt_spec_string).getRelativeTime();
+                long spec_relative_time_S = spec_relative_time.convertToSeconds();
+                long alt_spec_relative_time_S = alt_spec_relative_time.convertToSeconds();
+                final Boolean isSame = spec_relative_time_S == alt_spec_relative_time_S;
+                if (isSame)
+                        return alt_spec_string;
+                else
+                        return spec_relative_time.toString();
+            }
+            catch (Exception ex)
+            {
+            // Text invalid
+                return spec_relative_time.toString();
+            }
+        }   
         else
             return TimestampHelper.format(getStartTime());
     }

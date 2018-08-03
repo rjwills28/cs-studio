@@ -171,7 +171,7 @@ public class DataBrowserPropertySheetPage extends Page
         @Override
         public void changedTimerange()
         {
-            start_time.setText(model.getStartSpecification());
+            start_time.setText(model.getStartSpecification(start_time.getText()));
             end_time.setText(model.getEndSpecification());
         }
 
