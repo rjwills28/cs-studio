@@ -726,7 +726,7 @@ public class Model
     }
 
     /** @return String representation of start time. While scrolling, this is
-     *          a relative time (given by the alt_spec_string, if equivalent to time_span time), 
+     *          a relative time (given by the alt_spec_string, if equivalent to time_span time),
      *          otherwise an absolute date/time.
      */
     synchronized public String getStartSpecification(String alt_spec_string)
@@ -748,7 +748,7 @@ public class Model
             // Text invalid
                 return spec_relative_time.toString();
             }
-        }   
+        }
         else
             return TimestampHelper.format(getStartTime());
     }
