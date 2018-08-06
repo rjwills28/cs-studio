@@ -88,7 +88,7 @@ public class RelativeTime implements Cloneable
         MINUTE_TOKEN,
         SECOND_TOKEN
     };
-    
+
     /** Construct new relative time information. */
     public RelativeTime()
     {
@@ -186,7 +186,7 @@ public class RelativeTime implements Cloneable
             }
             for (int n = first_conversion_unit; n < number_time_units - 1; n++)
                 rolling_component *= conversions[n];
-            
+
             seconds += rolling_component;
         }
         return seconds;
