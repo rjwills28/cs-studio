@@ -34,6 +34,7 @@ public class ConverterApplication implements IApplication
 {
     private List<File> inputFiles = new ArrayList<>();
     private Optional<File> outputDirectory = Optional.empty();
+    private boolean force = false;
 
     private static String renameEdlToOpi(String edlFileName)
     {
@@ -44,9 +45,10 @@ public class ConverterApplication implements IApplication
 
     private void usage() {
         System.out.println("EDM Converter: convert all .edl files to .opi files at the same location.");
-        System.out.println("Usage: <converter-cmd> [-h] [-o <output-dir>] edl-file ...");
+        System.out.println("Usage: <converter-cmd> [-h] [-f] [-o <output-dir>] edl-file ...");
         System.out.println("       -h: print this help and exit");
-        System.out.println("       -o <output-dir>: place all converted opi files in output-dir.");
+        System.out.println("       -o <output-dir>: place all converted opi files in output-dir");
+        System.out.println("       -f: overwrite existing files");
     }
 
     private void parseArguments(String[] args) {
@@ -56,6 +58,11 @@ public class ConverterApplication implements IApplication
             {
                 usage();
                 System.exit(0);
+            }
+            else if (args[i].equals("-f"))
+            {
+                force = true;
+                ++i;
             }
             else if (args[i].equals("-o"))
             {
@@ -84,28 +91,32 @@ public class ConverterApplication implements IApplication
         System.out.println("** EDL File Converter **");
         System.out.println("************************");
 
+        // Prevent long error message when returning non-zero error code.
+        System.setProperty(IApplicationContext.EXIT_DATA_PROPERTY, "");
+
         final String args[] =
                 (String []) context.getArguments().get("application.args");
         parseArguments(args);
         if (outputDirectory.isPresent() && ! outputDirectory.get().exists())
         {
             System.out.println("ERROR: Output directory " + outputDirectory.get() + " does not exist.");
-            System.exit(-1);
+            return -1;
         }
         if (inputFiles.isEmpty())
         {
             System.out.println("ERROR: No input files specified.");
-            System.exit(-1);
+            return -1;
         }
         try
         {
             if (! checkThenConvert())
-                System.exit(-1);
+                return -1;
         }
         catch (Exception ex)
         {
+            System.out.println("Unexpected error while converting.");
             ex.printStackTrace();
-            System.exit(-1);
+            return -1;
         }
 
         return IApplication.EXIT_OK;
@@ -130,7 +141,7 @@ public class ConverterApplication implements IApplication
                 System.out.println("ERROR: Cannot read input file " + input);
                 return false;
             }
-            if (output.exists())
+            if (output.exists() && ! force)
             {
                 System.out.println("ERROR: Output file already exists: " + output);
                 return false;
