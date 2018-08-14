@@ -13,6 +13,7 @@ import org.csstudio.swt.rtplot.TraceType;
 import org.csstudio.trends.databrowser2.Activator;
 import org.csstudio.trends.databrowser2.Messages;
 import org.csstudio.trends.databrowser2.model.ArchiveRescale;
+import org.csstudio.trends.databrowser2.model.RequestType;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
@@ -150,6 +151,18 @@ public class PreferencePage extends FieldEditorPreferencePage
                 Messages.TraceTypes_Label, trace_labels_and_values, parent);
         addField(trace_types);
 
+        // Request type options
+        final RequestType request_values[] = RequestType.values();
+        final String request_labels_and_values[][] = new String[request_values.length][2];
+        for (int i=0; i<request_values.length; ++i)
+        {
+            request_labels_and_values[i][0] = request_values[i].toString();
+            request_labels_and_values[i][1] = request_values[i].name();
+        }
+        final ComboFieldEditor request_types = new ComboFieldEditor(Preferences.REQUEST_TYPE,
+                Messages.RequestType_Label, request_labels_and_values, parent);
+        addField(request_types);
+
         // Archive fetch delay:  0.1 .. 10 seconds
         final IntegerFieldEditor fetch_delay = new IntegerFieldEditor(Preferences.ARCHIVE_FETCH_DELAY,
                 Messages.PrefPage_ArchiveFetchDelay, parent);
@@ -166,7 +179,7 @@ public class PreferencePage extends FieldEditorPreferencePage
         final IntegerFieldEditor scroll_step = new IntegerFieldEditor(Preferences.SCROLL_STEP,
                 Messages.ScrollStepLbl, parent);
         scroll_step.setValidRange(1, (int)Duration.ofDays(1).getSeconds());
-        ((Text)scroll_step.getTextControl(parent)).setToolTipText(Messages.ScrollStepTT);
+        scroll_step.getTextControl(parent).setToolTipText(Messages.ScrollStepTT);
         addField(scroll_step);
 
         // Archive rescale options

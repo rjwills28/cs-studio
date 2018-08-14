@@ -221,6 +221,7 @@ public class Messages extends NLS
     public static String Request_optimized;
     public static String Request_raw;
     public static String RequestType;
+    public static String RequestType_Label;
     public static String RequestTypeTT;
     public static String RequestTypeWarning;
     public static String RequestTypeWarningDetail;

@@ -17,6 +17,7 @@ import org.csstudio.swt.rtplot.TraceType;
 import org.csstudio.trends.databrowser2.Activator;
 import org.csstudio.trends.databrowser2.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser2.model.ArchiveRescale;
+import org.csstudio.trends.databrowser2.model.RequestType;
 import org.csstudio.utility.singlesource.SingleSourcePlugin;
 import org.diirt.util.time.TimeDuration;
 import org.eclipse.core.runtime.IPath;
@@ -53,6 +54,7 @@ public class Preferences
             UPDATE_PERIOD = "update_period", LINE_WIDTH = "line_width",
             OPACITY = "opacity",
             TRACE_TYPE = "trace_type",
+            REQUEST_TYPE = "request_type",
             ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
             PLOT_BINS = "plot_bins", URLS = "urls", ARCHIVES = "archives",
             USE_DEFAULT_ARCHIVES = "use_default_archives",
@@ -150,6 +152,24 @@ public class Preferences
             }
         }
         return TraceType.AREA;
+    }
+
+    public static RequestType getRequestType()
+    {
+        final IPreferencesService prefs = Platform.getPreferencesService();
+        if (prefs != null)
+        {
+            final String request_name = prefs.getString(Activator.PLUGIN_ID, REQUEST_TYPE, RequestType.OPTIMIZED.name(), null);
+            try
+            {
+                return RequestType.valueOf(request_name);
+            }
+            catch (Exception ex)
+            {
+                Activator.getLogger().log(Level.WARNING, "Undefined request type option '" + request_name + "'", ex);
+            }
+        }
+        return RequestType.OPTIMIZED;
     }
 
     public static long getArchiveFetchDelay()
