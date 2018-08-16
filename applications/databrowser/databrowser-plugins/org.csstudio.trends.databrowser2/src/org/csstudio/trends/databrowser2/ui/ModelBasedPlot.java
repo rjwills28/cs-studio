@@ -378,6 +378,27 @@ public class ModelBasedPlot
         throw new IllegalArgumentException("Cannot locate trace for " + item);
     }
 
+    /** @param int trace number for which to locate the {@link ModelItem}
+     *  @return ModelItem
+     *  @throws RuntimeException When not found
+     */
+    public ModelItem getTraceModelItem(final int trace_idx) {
+
+        try
+        {
+            int n=0;
+            for(Trace<Instant> trace : plot.getTraces()) {
+                if (n == trace_idx)
+                    return items_by_trace.get(trace);
+                n++;
+            }
+            throw new RuntimeException("Cannot locate item for trace index " + trace_idx);
+        }
+        catch (Throwable ex)
+        {
+            throw new RuntimeException("Cannot locate item for trace index " + trace_idx, ex);
+        }
+    }
     /** @param trace {@link Trace} for which to locate the {@link ModelItem}
      *  @return ModelItem
      *  @throws RuntimeException When not found
