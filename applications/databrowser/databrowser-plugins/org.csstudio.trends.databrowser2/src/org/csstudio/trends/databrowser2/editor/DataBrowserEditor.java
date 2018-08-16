@@ -33,6 +33,7 @@ import org.csstudio.trends.databrowser2.propsheet.AxisMinMaxEditAction;
 import org.csstudio.trends.databrowser2.propsheet.AxisNameAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.AxisNameEditAction;
 import org.csstudio.trends.databrowser2.propsheet.ChangeAxisTraceAction;
+import org.csstudio.trends.databrowser2.propsheet.ChangeColourTraceAction;
 import org.csstudio.trends.databrowser2.propsheet.DataBrowserPropertySheetPage;
 import org.csstudio.trends.databrowser2.propsheet.GridAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.RemoveUnusedAxesAction;
@@ -400,8 +401,8 @@ public class DataBrowserEditor extends EditorPart
             manager.add(new TimeAxisGridAction(Messages.GridTT, model));
         else if (inTrace != -1) {
             ModelItem item = plot.getTraceModelItem(inTrace);
-            System.out.println(item.getDisplayName());
             manager.add(new ChangeAxisTraceAction(model, item));
+            manager.add(new ChangeColourTraceAction(model, item));
         }
         else {
             manager.add(plot.getPlot().getToolbarAction());

@@ -72,6 +72,7 @@ public class Messages extends NLS
     public static String ChangeLiveCapacityCommandErrorFmt;
     public static String ChangeNameErrorFmt;
     public static String ChangeAxis;
+    public static String ChangeColour;
     public static String Color;
     public static String ColorTT;
     public static String ConfigFileErrorFmt;
