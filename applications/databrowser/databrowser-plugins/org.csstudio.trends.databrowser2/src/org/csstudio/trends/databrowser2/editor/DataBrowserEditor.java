@@ -9,6 +9,7 @@ package org.csstudio.trends.databrowser2.editor;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -37,6 +38,7 @@ import org.csstudio.trends.databrowser2.propsheet.GridAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.RemoveUnusedAxesAction;
 import org.csstudio.trends.databrowser2.propsheet.ScaleTypeAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.TimeAxisGridAction;
+import org.csstudio.trends.databrowser2.propsheet.TimeAxisStepAction;
 import org.csstudio.trends.databrowser2.propsheet.TraceNameAxisAction;
 import org.csstudio.trends.databrowser2.sampleview.SampleView;
 import org.csstudio.trends.databrowser2.search.SearchView;
@@ -393,8 +395,18 @@ public class DataBrowserEditor extends EditorPart
             manager.add(new AxisNameEditAction(axis_config));
             manager.add(new AxisMinMaxEditAction(axis_config));
         }
-        else if (inXAxis)
+        else if (inXAxis) {
             manager.add(new TimeAxisGridAction(Messages.GridTT, model));
+            manager.add(new Separator());
+            final TimeAxisStepAction.TimeModificationType types[] = new TimeAxisStepAction.TimeModificationType[] {TimeAxisStepAction.TimeModificationType.StartTime, TimeAxisStepAction.TimeModificationType.EndTime, TimeAxisStepAction.TimeModificationType.Step};
+            final int increments[] = new int[] {+1, +7, -1, -7};
+            for (int t=0; t<types.length; t++) {
+                MenuManager typeManager = new MenuManager(types[t].toString(), null);
+                for (int i=0; i<increments.length; i++)
+                    typeManager.add(new TimeAxisStepAction(types[t], ChronoUnit.DAYS, increments[i], model));
+                manager.add(typeManager);
+            }
+        }
         else {
             manager.add(plot.getPlot().getToolbarAction());
             manager.add(plot.getPlot().getLegendAction());
