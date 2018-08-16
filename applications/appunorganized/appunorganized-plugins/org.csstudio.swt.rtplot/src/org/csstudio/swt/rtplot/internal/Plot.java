@@ -442,22 +442,8 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends Canvas implements Pai
         double closestDistance = 10;
         int nearestTrace = -1;
         int n = 0;
-        //final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
         for(Trace<XTYPE> trace: traces) {
             final PlotDataProvider<XTYPE> data = trace.getData();
-            //final PlotDataItem<XTYPE> sample;
-            //data.getLock().lock();
-            //try
-            //{
-             //   final int index = search.findSampleLessOrEqual(data, point.x);
-            //    sample = index >= 0 ? data.get(index) : null;
-           // }
-           // finally
-            //{
-            //    data.getLock().unlock();
-           // }
-            //if (sample == null)
-            //    continue;
             int numPoints = data.size();
             for(int p=0; p<numPoints; p++) {
                 PlotDataItem<XTYPE> datum = data.get(p);
@@ -465,7 +451,6 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends Canvas implements Pai
                 double yAxisValue = datum.getValue();
                 double distance = Math.sqrt(Math.pow(x_axis.getScreenCoord(xAxisValue)-point.x, 2) + Math.pow(y_axes.get(trace.getYAxis()).getScreenCoord(yAxisValue)-point.y, 2));
                 if (distance < closestDistance) {
-                    System.out.println(n + ": " + x_axis.getScreenCoord(xAxisValue) + ", " + y_axes.get(trace.getYAxis()).getScreenCoord(yAxisValue) + " (" + point.x + ", " + point.y + ")");
                     closestDistance = distance;
                     nearestTrace = n;
                 }
