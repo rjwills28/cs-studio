@@ -36,10 +36,12 @@ import org.csstudio.trends.databrowser2.propsheet.ChangeAxisTraceAction;
 import org.csstudio.trends.databrowser2.propsheet.ChangeColourTraceAction;
 import org.csstudio.trends.databrowser2.propsheet.DataBrowserPropertySheetPage;
 import org.csstudio.trends.databrowser2.propsheet.GridAxisAction;
+import org.csstudio.trends.databrowser2.propsheet.HideTraceAction;
 import org.csstudio.trends.databrowser2.propsheet.RemoveUnusedAxesAction;
 import org.csstudio.trends.databrowser2.propsheet.ScaleTypeAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.TimeAxisGridAction;
 import org.csstudio.trends.databrowser2.propsheet.TraceNameAxisAction;
+import org.csstudio.trends.databrowser2.propsheet.WaveformIndexTraceAction;
 import org.csstudio.trends.databrowser2.sampleview.SampleView;
 import org.csstudio.trends.databrowser2.search.SearchView;
 import org.csstudio.trends.databrowser2.ui.AddPVAction;
@@ -401,8 +403,12 @@ public class DataBrowserEditor extends EditorPart
             manager.add(new TimeAxisGridAction(Messages.GridTT, model));
         else if (inTrace != -1) {
             ModelItem item = plot.getTraceModelItem(inTrace);
+            manager.add(new HideTraceAction(model, item));
+            manager.add(new Separator());
             manager.add(new ChangeAxisTraceAction(model, item));
             manager.add(new ChangeColourTraceAction(model, item));
+            manager.add(new Separator());
+            manager.add(new WaveformIndexTraceAction(model, item));
         }
         else {
             manager.add(plot.getPlot().getToolbarAction());

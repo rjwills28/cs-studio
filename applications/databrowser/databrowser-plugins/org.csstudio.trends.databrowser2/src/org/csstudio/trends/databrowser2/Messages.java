@@ -73,6 +73,7 @@ public class Messages extends NLS
     public static String ChangeNameErrorFmt;
     public static String ChangeAxis;
     public static String ChangeColour;
+    public static String ChangeWaveformIndex;
     public static String Color;
     public static String ColorTT;
     public static String ConfigFileErrorFmt;
@@ -152,6 +153,7 @@ public class Messages extends NLS
     public static String Grid;
     public static String GridLbl;
     public static String GridTT;
+    public static String HideTrace;
     public static String HideTraceWarning;
     public static String HideTraceWarningDetail;
     public static String ImportActionFileSelectorTitleFmt;
