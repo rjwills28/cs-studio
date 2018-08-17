@@ -7,9 +7,13 @@
  ******************************************************************************/
 package org.csstudio.swt.rtplot.internal;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -290,7 +294,13 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                         final String units = trace.getUnits();
                         if (! units.isEmpty())
                             label += " " + units;
-                        markers.add(new CursorMarker(cursor_x, axis.getScreenCoord(value), trace.getColor(), label));
+                        String samplePosition = sample.getPosition().toString();
+                        if (sample.getPosition() instanceof Instant) {
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss:ms").withLocale(Locale.UK).withZone(ZoneId.systemDefault());
+                            samplePosition =formatter.format((Instant)sample.getPosition());
+                        }
+                        String sampleinfo = samplePosition + ": " + sample.getValue();
+                        markers.add(new CursorMarker(cursor_x, axis.getScreenCoord(value), trace.getColor(), label, sampleinfo));
                     }
                 }
             Collections.sort(markers);

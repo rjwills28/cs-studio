@@ -37,6 +37,8 @@ import org.csstudio.swt.rtplot.undo.UpdateAnnotationAction;
 import org.csstudio.swt.rtplot.util.UpdateThrottle;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.DisposeEvent;
@@ -55,9 +57,11 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 /** Plot with axes and area that displays the traces
  *  @param <XTYPE> Data type used for the {@link PlotDataItem}
@@ -915,8 +919,36 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends Canvas implements Pai
 
     /** MouseListener: {@inheritDoc} */
     @Override
-    public void mouseDown(final MouseEvent e)
-    {
+    public void mouseDown(final MouseEvent e) {
+        if (e.button == 1 && show_crosshair && mouse_mode == MouseMode.PAN) {
+            Display d = Display.getCurrent();
+            final Shell shell = new Shell(d);
+            Point cursor = Display.getCurrent().getCursorLocation();
+            shell.setLayout(new FillLayout());
+            shell.setLocation(cursor.x, cursor.y);
+            StyledText text = new StyledText(shell, SWT.MULTI);
+            shell.setText("Sample Inspector");
+            String text1 = new String();
+
+            List<StyleRange> styleRanges = new ArrayList<StyleRange>();
+            final List<CursorMarker> safe_markers = cursor_markers.orElse(null);
+            if (safe_markers != null)
+                for (CursorMarker safe_marker : safe_markers) {
+                    StyleRange styleRange = new StyleRange();
+                    styleRange.start = text1.length();
+                    text1 += safe_marker.getInfo() + "\n";
+                    styleRange.length = text1.length() - styleRange.start;
+                    styleRange.foreground = new Color(d, safe_marker.getRGB());
+                    styleRanges.add(styleRange);
+                }
+            text.setText(text1);
+            for (StyleRange styleRange : styleRanges)
+                text.setStyleRange(styleRange);
+            shell.pack();
+            shell.open();
+
+            return;
+        }
         // Don't start mouse actions when user invokes context menu
         if (e.button != 1  ||  e.stateMask != 0)
             return;
@@ -1091,7 +1123,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends Canvas implements Pai
     }
 
     /** Called by {@link PlotProcessor}
-     *  @param markers Markes for current cursor position
+     *  @param markers Markers for current cursor position
      */
     private void updateCursors(final List<CursorMarker> markers)
     {
@@ -1289,4 +1321,5 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends Canvas implements Pai
         for (RTPlotListener<XTYPE> listener : listeners)
             listener.changedAutoScale(axis);
     }
+
 }
