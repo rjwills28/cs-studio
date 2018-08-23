@@ -38,18 +38,35 @@ class CursorMarker implements Comparable<CursorMarker>
     final private int x, y;
     final private RGB rgb;
     final private String label;
+    final private String info;
 
     /** @param x Pixel position
      *  @param y Pixel position
      *  @param rgb Color
      *  @param label Label
      */
-    public CursorMarker(final int x, final int y, final RGB rgb, final String label)
+    public CursorMarker(final int x, final int y, final RGB rgb, final String label, final String info)
     {
         this.x = x;
         this.y = y;
         this.rgb = rgb;
         this.label = label;
+        this.info = info;
+    }
+
+    /** Return the marker color
+     * @return rgb return marker color;
+     */
+    public RGB getRGB() {
+        return this.rgb;
+    }
+
+    /** Return a formatted string detailing full details about the point
+     * the marker represents
+     * @return String formatted string summary of info
+     */
+    public String getInfo() {
+        return this.info;
     }
 
     // Comparable
