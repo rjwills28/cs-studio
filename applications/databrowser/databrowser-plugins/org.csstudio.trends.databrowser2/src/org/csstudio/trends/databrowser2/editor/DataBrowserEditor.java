@@ -37,6 +37,7 @@ import org.csstudio.trends.databrowser2.propsheet.ChangeColourTraceAction;
 import org.csstudio.trends.databrowser2.propsheet.DataBrowserPropertySheetPage;
 import org.csstudio.trends.databrowser2.propsheet.GridAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.HideTraceAction;
+import org.csstudio.trends.databrowser2.propsheet.LabelAction;
 import org.csstudio.trends.databrowser2.propsheet.RemoveUnusedAxesAction;
 import org.csstudio.trends.databrowser2.propsheet.ScaleTypeAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.TimeAxisGridAction;
@@ -390,6 +391,7 @@ public class DataBrowserEditor extends EditorPart
 
         if(inYAxis !=-1) {
             AxisConfig axis_config = model.getAxis(inYAxis);
+            manager.add(new LabelAction(axis_config.getName()));
             manager.add(new AutoscaleAxisAction(axis_config));
             manager.add(new ScaleTypeAxisAction(axis_config));
             manager.add(new GridAxisAction(axis_config));
@@ -403,11 +405,10 @@ public class DataBrowserEditor extends EditorPart
             manager.add(new TimeAxisGridAction(Messages.GridTT, model));
         else if (inTrace != -1) {
             ModelItem item = plot.getTraceModelItem(inTrace);
+            manager.add(new LabelAction(item.getDisplayName()));
             manager.add(new HideTraceAction(model, item));
-            manager.add(new Separator());
             manager.add(new ChangeAxisTraceAction(model, item));
             manager.add(new ChangeColourTraceAction(model, item));
-            manager.add(new Separator());
             manager.add(new WaveformIndexTraceAction(model, item));
         }
         else {
