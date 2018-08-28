@@ -32,12 +32,17 @@ import org.csstudio.trends.databrowser2.propsheet.AutoscaleAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.AxisMinMaxEditAction;
 import org.csstudio.trends.databrowser2.propsheet.AxisNameAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.AxisNameEditAction;
+import org.csstudio.trends.databrowser2.propsheet.ChangeAxisTraceAction;
+import org.csstudio.trends.databrowser2.propsheet.ChangeColourTraceAction;
 import org.csstudio.trends.databrowser2.propsheet.DataBrowserPropertySheetPage;
 import org.csstudio.trends.databrowser2.propsheet.GridAxisAction;
+import org.csstudio.trends.databrowser2.propsheet.HideTraceAction;
+import org.csstudio.trends.databrowser2.propsheet.LabelAction;
 import org.csstudio.trends.databrowser2.propsheet.RemoveUnusedAxesAction;
 import org.csstudio.trends.databrowser2.propsheet.ScaleTypeAxisAction;
 import org.csstudio.trends.databrowser2.propsheet.TimeAxisGridAction;
 import org.csstudio.trends.databrowser2.propsheet.TraceNameAxisAction;
+import org.csstudio.trends.databrowser2.propsheet.WaveformIndexTraceAction;
 import org.csstudio.trends.databrowser2.sampleview.SampleView;
 import org.csstudio.trends.databrowser2.search.SearchView;
 import org.csstudio.trends.databrowser2.ui.AddPVAction;
@@ -377,13 +382,16 @@ public class DataBrowserEditor extends EditorPart
     {
         final Activator activator = Activator.getDefault();
         final Shell shell = getSite().getShell();
-        Point location = plot.getPlot().getDisplay().getCursorLocation();
-        location = plot.getPlot().toControl(location);
-        boolean inXAxis = plot.getPlot().inXAxis(location);
-        int inYAxis = plot.getPlot().inYAxis(location);
+        Point location_screen = plot.getPlot().getDisplay().getCursorLocation();
+        Point location_control = plot.getPlot().toControl(location_screen);
+        boolean inXAxis = plot.getPlot().inXAxis(location_control);
+        int inTrace = plot.getPlot().inTrace(location_control);
+        int inYAxis = plot.getPlot().inYAxis(location_control);
         final UndoableActionManager op_manager = plot.getPlot().getUndoableActionManager();
+
         if(inYAxis !=-1) {
             AxisConfig axis_config = model.getAxis(inYAxis);
+            manager.add(new LabelAction(axis_config.getName()));
             manager.add(new AutoscaleAxisAction(axis_config));
             manager.add(new ScaleTypeAxisAction(axis_config));
             manager.add(new GridAxisAction(axis_config));
@@ -395,6 +403,14 @@ public class DataBrowserEditor extends EditorPart
         }
         else if (inXAxis)
             manager.add(new TimeAxisGridAction(Messages.GridTT, model));
+        else if (inTrace != -1) {
+            ModelItem item = plot.getTraceModelItem(inTrace);
+            manager.add(new LabelAction(item.getDisplayName()));
+            manager.add(new HideTraceAction(model, item));
+            manager.add(new ChangeAxisTraceAction(model, item));
+            manager.add(new ChangeColourTraceAction(model, item));
+            manager.add(new WaveformIndexTraceAction(model, item));
+        }
         else {
             manager.add(plot.getPlot().getToolbarAction());
             manager.add(plot.getPlot().getLegendAction());

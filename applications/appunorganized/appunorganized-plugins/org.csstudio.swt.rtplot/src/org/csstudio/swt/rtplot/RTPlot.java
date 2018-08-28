@@ -328,6 +328,12 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends Composite
         plot.moveTrace((TraceImpl<XTYPE>)trace, new_y_axis);
     }
 
+    /** @return Integer Index of trace whose bounds point lies within;
+     * -1 if no such axis exists */
+    public int inTrace(final Point point) {
+        return plot.inTrace(point);
+    }
+
     /** @param trace Trace to remove */
     public void removeTrace(final Trace<XTYPE> trace)
     {
