@@ -18,16 +18,166 @@ import org.csstudio.apputil.time.StartEndTimeParser;
 import org.csstudio.java.time.TimestampFormats;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Widget;
+
+class TopBottomTimeWidget extends Composite {
+
+    static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
+    static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+
+    public CalendarWidget calendarTime;
+    public RelativeTimeWidget relativeTime;
+
+    private Composite topCalendarBox;
+    private Composite bottomRelativeBox;
+
+    public TopBottomTimeWidget(Composite parent, int style) {
+        super(parent, style);
+
+        parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        final GridLayout leftLayout = new GridLayout();
+        parent.setLayout(leftLayout);
+
+        topCalendarBox = new Composite(parent, SWT.NULL);
+        topCalendarBox.setBackgroundMode(SWT.INHERIT_FORCE);
+        final FillLayout topLayout = new FillLayout();
+        topLayout.type = SWT.VERTICAL;
+        topCalendarBox.setLayout(topLayout);
+        calendarTime = new CalendarWidget(topCalendarBox, SWT.NONE);
+
+        bottomRelativeBox = new Composite(parent, SWT.NULL);
+        bottomRelativeBox.setBackgroundMode(SWT.INHERIT_FORCE);
+        final FillLayout bottomLayout = new FillLayout();
+        bottomLayout.type = SWT.VERTICAL;
+        bottomRelativeBox.setLayout(bottomLayout);
+        relativeTime = new RelativeTimeWidget(bottomRelativeBox, SWT.NONE);
+
+        HighlightListener mouseTop = new HighlightListener(topCalendarBox, bottomRelativeBox);
+        HighlightListener mouseBottom = new HighlightListener(bottomRelativeBox, topCalendarBox);
+
+        Display.getCurrent().addFilter(SWT.MouseDown, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                if (HighlightListener.isChildOrSelf(e.widget, topCalendarBox)) {
+                    setAbsolute();
+                }
+                if (HighlightListener.isChildOrSelf(e.widget, bottomRelativeBox)) {
+                    setRelative();
+                }
+            }
+        });
+
+        calendarTime.addSelectionListener(mouseTop);
+
+    }
+
+    public void setAbsolute() {
+        topCalendarBox.setBackground(highlightColour);
+        bottomRelativeBox.setBackground(defaultColour);
+    }
+
+    public void setRelative() {
+        bottomRelativeBox.setBackground(highlightColour);
+        topCalendarBox.setBackground(defaultColour);
+    }
+
+
+
+}
+
+
+class HighlightListener implements SelectionListener, MouseListener, FocusListener
+{
+
+    private Composite selected;
+    private Composite deselected;
+
+    private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
+    private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+
+    public HighlightListener(Composite s, Composite d) {
+        super();
+        selected = s;
+        deselected = d;
+    }
+
+    @Override
+    public void mouseDoubleClick(MouseEvent arg0) { }
+
+    @Override
+    public void mouseDown(MouseEvent arg0) {
+        selected.setBackground(highlightColour);
+        deselected.setBackground(defaultColour);
+    }
+
+    @Override
+    public void mouseUp(MouseEvent arg0) { }
+
+    @Override
+    public void widgetDefaultSelected(SelectionEvent arg0) {
+        selected.setBackground(highlightColour);
+        deselected.setBackground(defaultColour);
+    }
+
+    @Override
+    public void widgetSelected(SelectionEvent arg0) {
+        selected.setBackground(highlightColour);
+        deselected.setBackground(defaultColour);
+   }
+
+    @Override
+    public void focusGained(FocusEvent arg0) {
+        selected.setBackground(highlightColour);
+        deselected.setBackground(defaultColour);
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void focusLost(FocusEvent arg0) {
+        // TODO Auto-generated method stub
+
+    }
+
+static boolean isChildOrSelf(Widget child, Composite parent)
+{
+
+    if (child == parent)
+        return true;
+
+    for (Control c : parent.getChildren()) {
+        if (c instanceof Composite)
+        {
+            boolean result = isChildOrSelf(child, (Composite)c);
+            if (result)
+                return true;
+        }
+        else if (c == child)
+            return false;
+    }
+    return false;
+
+};
+
+}
 
 /** Dialog for entering relative as well as absolute start and end times.
  *  @author Kay Kasemir
@@ -35,14 +185,15 @@ import org.eclipse.swt.widgets.Text;
 public class StartEndDialog extends Dialog
     implements CalendarWidgetListener, RelativeTimeWidgetListener
 {
+
+    private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
+    private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+
     // GUI Elements
-    private TabFolder left_tab, right_tab;
-    private static final int ABS_TAB = 0;
-    private static final int REL_TAB = 1;
-    private CalendarWidget abs_start, abs_end;
-    private RelativeTimeWidget rel_start, rel_end;
+
     private Text start_text, end_text;
     private Label info;
+    private TopBottomTimeWidget left, right;
 
     // Start and end specification strings
     private String start_specification, end_specification;
@@ -100,12 +251,39 @@ public class StartEndDialog extends Dialog
         final Composite box = new Composite(area, 0);
         box.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        final GridLayout layout = new GridLayout();
-        layout.numColumns = 4;
+        final GridLayout layout = new GridLayout(2, false);
+        //layout.numColumns = 2;
         box.setLayout(layout);
         GridData gd;
 
+        final Composite leftBox = new Composite(box, 0);
+        leftBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        left = new TopBottomTimeWidget(leftBox, 0);
+
+        left.calendarTime.addListener(this);
+        left.relativeTime.addListener(this);
+
+        //leftTopBox.addSelectionListener(mouseTop);
+//        date.addSelectionListener(mouseTop);
+        //leftBottomBox.addMouseListener(mouseBottom);
+
+        final Composite rightBox = new Composite(box, 0);
+        rightBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        right = new TopBottomTimeWidget(rightBox, 0);
+        right.calendarTime.addListener(this);
+        right.relativeTime.addListener(this);
+        //gd = new GridData();
+
+        //gd.horizontalSpan = layout.numColumns/2;
+       // gd.grabExcessHorizontalSpace = true;
+       // gd.horizontalAlignment = SWT.FILL;
+        //rightBox.setLayoutData(gd);
+        //final Text text2 = new Text(rightBox, SWT.LEFT);
+        //text2.setText("hello");
+
         // ---- Left -----
+        /*
         left_tab = new TabFolder(box, SWT.BORDER);
         gd = new GridData();
         gd.horizontalSpan = layout.numColumns/2;
@@ -147,6 +325,7 @@ public class StartEndDialog extends Dialog
         rel_end = new RelativeTimeWidget(right_tab, 0);
         rel_end.addListener(this);
         tab.setControl(rel_end);
+        */
 
         // New Row
         Label l = new Label(box, SWT.NULL);
@@ -217,21 +396,20 @@ public class StartEndDialog extends Dialog
     }
 
     /** @see #setFromSpecifications */
-    private void setFromSpecification(TabFolder tab, CalendarWidget abs,
-                    RelativeTimeWidget rel, Text text, String specification)
+    private void setFromSpecification(TopBottomTimeWidget timewidget, Text text, String specification)
         throws Exception
     {
         text.setText(specification);
         RelativeTimeParserResult result = RelativeTimeParser.parse(specification);
         if (result.isAbsolute())
         {
-            tab.setSelection(ABS_TAB);
-            abs.setCalendar(AbsoluteTimeParser.parse(specification));
+            timewidget.setAbsolute();
+            timewidget.calendarTime.setCalendar(AbsoluteTimeParser.parse(specification));
         }
         else
         {
-            tab.setSelection(REL_TAB);
-            rel.setRelativeTime(result.getRelativeTime());
+            timewidget.setRelative();
+            timewidget.relativeTime.setRelativeTime(result.getRelativeTime());
         }
     }
 
@@ -240,8 +418,7 @@ public class StartEndDialog extends Dialog
     {
         try
         {
-            setFromSpecification(left_tab, abs_start, rel_start, start_text,
-                                 start_specification);
+            setFromSpecification(left, start_text, start_specification);
         }
         catch (Exception ex)
         {
@@ -249,8 +426,7 @@ public class StartEndDialog extends Dialog
         }
         try
         {
-            setFromSpecification(right_tab, abs_end, rel_end, end_text,
-                                 end_specification);
+            setFromSpecification(right, end_text, end_specification);
         }
         catch (Exception ex)
         {
@@ -264,7 +440,7 @@ public class StartEndDialog extends Dialog
     @Override
     public void updatedCalendar(CalendarWidget source, Calendar calendar)
     {
-        if (source == abs_start)
+        if (source == left.calendarTime)
             start_text.setText(DATE_FORMAT.format(calendar.toInstant()));
         else
             end_text.setText(DATE_FORMAT.format(calendar.toInstant()));
@@ -280,7 +456,7 @@ public class StartEndDialog extends Dialog
     @Override
     public void updatedTime(RelativeTimeWidget source, RelativeTime time)
     {
-        if (source == rel_start)
+        if (source == left.relativeTime)
             start_text.setText(time.toString());
         else
             end_text.setText(time.toString());

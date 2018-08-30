@@ -11,21 +11,22 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DateTime;
-import org.eclipse.swt.widgets.Label;
 
 /** Widget for displaying and selecting an absolute date and time.
  *  @author Kay Kasemir
  */
 public class CalendarWidget extends Composite
 {
+
     /** Widget for date. */
     private DateTime date;
 
@@ -69,24 +70,35 @@ public class CalendarWidget extends Composite
         // Time: ---time---
         // [Today] [Midnight] [Noon]
 
-        date = new DateTime(this, SWT.CALENDAR);
-        date.setToolTipText(Messages.Time_SelectDate);
-        gd = new GridData();
-        gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.CENTER;
-        gd.grabExcessVerticalSpace = true;
-        gd.verticalAlignment = SWT.FILL;
-        date.setLayoutData(gd);
-
-        // New row
         Composite box = new Composite(this, 0);
         box.setLayout(new RowLayout());
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.CENTER;
+        gd.horizontalAlignment = SWT.LEFT;
+        gd.grabExcessVerticalSpace = true;
+        gd.verticalAlignment = SWT.CENTER;
         box.setLayoutData(gd);
 
-        Label l = new Label(box, SWT.NONE);
+        CLabel l = new CLabel(box, SWT.CENTER);
+        l.setText("Date:");
+        date = new DateTime(box, SWT.DROP_DOWN | SWT.DATE | SWT.LONG);
+        date.setToolTipText(Messages.Time_SelectDate);
+        gd = new GridData();
+        gd.grabExcessHorizontalSpace = true;
+        gd.horizontalAlignment = SWT.LEFT;
+        gd.grabExcessVerticalSpace = true;
+        gd.verticalAlignment = SWT.FILL;
+        box.setLayoutData(gd);
+
+        // New row
+        box = new Composite(this, 0);
+        box.setLayout(new RowLayout());
+        gd = new GridData();
+        gd.grabExcessHorizontalSpace = true;
+        gd.horizontalAlignment = SWT.LEFT;
+        box.setLayoutData(gd);
+
+        l = new CLabel(box, SWT.CENTER);
         l.setText(Messages.Time_Time);
         // SWT.MEDIUM to include seconds as needed by BOY
         time = new DateTime(box, SWT.TIME | SWT.MEDIUM);
@@ -98,63 +110,12 @@ public class CalendarWidget extends Composite
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.horizontalAlignment = SWT.CENTER;
+        gd.verticalAlignment = SWT.CENTER;
         box.setLayoutData(gd);
-
-        Button now = new Button(box, SWT.PUSH);
-        now.setText(Messages.Time_Now);
-        now.setToolTipText(Messages.Time_Now_TT);
-
-        Button midnight = new Button(box, SWT.PUSH);
-        midnight.setText(Messages.Time_Midnight);
-        midnight.setToolTipText(Messages.Time_Midnight_TT);
-
-        Button noon = new Button(box, SWT.PUSH);
-        noon.setText(Messages.Time_Noon);
-        noon.setToolTipText(Messages.Time_Noon_TT);
 
         // Initialize to 'now'
         setCalendar(calendar);
 
-        now.addSelectionListener(new SelectionAdapter()
-        {
-            @Override
-            public void widgetSelected(SelectionEvent e)
-            {
-                if (!in_GUI_update)
-                {
-                    setCalendar(Calendar.getInstance());
-                }
-            }
-        });
-
-        midnight.addSelectionListener(new SelectionAdapter()
-        {
-            @Override
-            public void widgetSelected(SelectionEvent e)
-            {
-                if (!in_GUI_update)
-                {
-                    time.setHours(0);
-                    time.setMinutes(0);
-                    time.setSeconds(0);
-                    updateDataFromGUI();
-                }
-            }
-        });
-        noon.addSelectionListener(new SelectionAdapter()
-        {
-            @Override
-            public void widgetSelected(SelectionEvent e)
-            {
-                if (!in_GUI_update)
-                {
-                    time.setHours(12);
-                    time.setMinutes(0);
-                    time.setSeconds(0);
-                    updateDataFromGUI();
-                }
-            }
-        });
         final SelectionAdapter update = new SelectionAdapter()
         {
             @Override
@@ -227,5 +188,9 @@ public class CalendarWidget extends Composite
         // fireUpdatedTimestamp
         for (CalendarWidgetListener l : listeners)
             l.updatedCalendar(this, calendar);
+    }
+
+    public void addSelectionListener(SelectionListener mouseTop) {
+        date.addSelectionListener(mouseTop);
     }
 }
