@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.csstudio.apputil.time.RelativeTime;
+import org.csstudio.apputil.ui.time.StartEndWidget;
 import org.csstudio.swt.rtplot.SWTMediaPool;
 import org.csstudio.swt.rtplot.undo.UndoableActionManager;
 import org.csstudio.trends.databrowser2.Messages;
@@ -23,7 +23,6 @@ import org.csstudio.trends.databrowser2.model.ModelItem;
 import org.csstudio.trends.databrowser2.model.ModelListener;
 import org.csstudio.trends.databrowser2.model.ModelListenerAdapter;
 import org.csstudio.trends.databrowser2.model.PVItem;
-import org.csstudio.trends.databrowser2.preferences.Preferences;
 import org.csstudio.trends.databrowser2.ui.AddPVAction;
 import org.csstudio.trends.databrowser2.ui.StartEndTimeAction;
 import org.csstudio.ui.util.MinSizeTableColumnLayout;
@@ -43,11 +42,12 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
@@ -171,8 +171,8 @@ public class DataBrowserPropertySheetPage extends Page
         @Override
         public void changedTimerange()
         {
-            start_time.setText(model.getStartSpecification());
-            end_time.setText(model.getEndSpecification());
+            //start_time.setText(model.getStartSpecification());
+            //end_time.setText(model.getEndSpecification());
         }
 
         /** {@inheritDoc} */
@@ -550,9 +550,13 @@ public class DataBrowserPropertySheetPage extends Page
         final TabItem time_tab = new TabItem(tab_folder, 0);
         time_tab.setText(Messages.TimeAxis);
 
-        final Composite parent = new Composite(tab_folder, 0);
-        parent.setLayout(new GridLayout(3, false));
+        //final StartEndDialog dialog = new StartEndDialog(Display.getCurrent().getActiveShell(), "1 days", "Now");
 
+        final Composite parent = new Composite(tab_folder, 0);
+        parent.setLayout(new GridLayout(1, false));
+        final StartEndWidget widget = new StartEndWidget(parent, 0);
+
+        /*
         // Start Time: ______ [...]
         Label label = new Label(parent, 0);
         label.setText(Messages.StartTimeLbl);
@@ -580,22 +584,23 @@ public class DataBrowserPropertySheetPage extends Page
         start_end2.setText(Messages.StartEndDialogBtn);
         start_end2.setToolTipText(Messages.StartEndDialogTT);
         start_end2.setLayoutData(new GridData());
-
+        */
         time_tab.setControl(parent);
+
 
         // Initialize with model's current start/end time
         model_listener.changedTimerange();
 
         // Allow entry of start/end times in text boxes
-        final SelectionAdapter times_entered = new SelectionAdapter()
+        final FocusAdapter times_entered = new FocusAdapter()
         {
             @Override
-            public void widgetDefaultSelected(final SelectionEvent e)
+            public void focusLost(final FocusEvent e)
             {
                 try
                 {
                     StartEndTimeAction.run(model, operations_manager,
-                            start_time.getText(), end_time.getText());
+                            widget.getStartSpecification(), widget.getEndSpecification());
                 }
                 catch (Exception ex)
                 {
@@ -606,9 +611,10 @@ public class DataBrowserPropertySheetPage extends Page
                 }
             }
         };
-        start_time.addSelectionListener(times_entered);
-        end_time.addSelectionListener(times_entered);
+        widget.addFocusListener(times_entered);
+        //end_time.addSelectionListener(times_entered);
 
+        /*
         // Buttons start start/end dialog
         final SelectionListener start_end_action = new SelectionAdapter()
         {
@@ -648,8 +654,9 @@ public class DataBrowserPropertySheetPage extends Page
                 }
             });
         }
+*/
 
-        label = new Label(parent, 0);
+        Label label = new Label(parent, 0);
         label.setText(Messages.GridLbl);
         label.setLayoutData(new GridData());
 
