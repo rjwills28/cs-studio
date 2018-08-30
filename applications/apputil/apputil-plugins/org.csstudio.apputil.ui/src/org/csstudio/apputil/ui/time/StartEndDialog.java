@@ -237,94 +237,11 @@ public class StartEndDialog extends Dialog
         left.calendarTime.addListener(this);
         left.relativeTime.addListener(this);
 
-        //leftTopBox.addSelectionListener(mouseTop);
-//        date.addSelectionListener(mouseTop);
-        //leftBottomBox.addMouseListener(mouseBottom);
-
         final Composite rightBox = new Composite(box, 0);
         rightBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         right = new TopBottomTimeWidget(rightBox, 0, true);
         right.calendarTime.addListener(this);
         right.relativeTime.addListener(this);
-        //gd = new GridData();
-
-        //gd.horizontalSpan = layout.numColumns/2;
-       // gd.grabExcessHorizontalSpace = true;
-       // gd.horizontalAlignment = SWT.FILL;
-        //rightBox.setLayoutData(gd);
-        //final Text text2 = new Text(rightBox, SWT.LEFT);
-        //text2.setText("hello");
-
-        // ---- Left -----
-        /*
-        left_tab = new TabFolder(box, SWT.BORDER);
-        gd = new GridData();
-        gd.horizontalSpan = layout.numColumns/2;
-        gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.FILL;
-        left_tab.setLayoutData(gd);
-
-        TabItem tab = new TabItem(left_tab, 0);
-        tab.setText(Messages.StartEnd_AbsStart);
-        tab.setToolTipText(Messages.StartEnd_AbsStart_TT);
-        abs_start = new CalendarWidget(left_tab, 0);
-        abs_start.addListener(this);
-        tab.setControl(abs_start);
-
-        tab = new TabItem(left_tab, 0);
-        tab.setText(Messages.StartEnd_RelStart);
-        tab.setToolTipText(Messages.StartEnd_RelStart_TT);
-        rel_start = new RelativeTimeWidget(left_tab, 0);
-        rel_start.addListener(this);
-        tab.setControl(rel_start);
-
-        right_tab = new TabFolder(box, SWT.BORDER);
-        gd = new GridData();
-        gd.horizontalSpan = layout.numColumns/2;
-        gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.FILL;
-        right_tab.setLayoutData(gd);
-
-        tab = new TabItem(right_tab, 0);
-        tab.setText(Messages.StartEnd_AbsEnd);
-        tab.setToolTipText(Messages.StartEnd_AbsEnd_TT);
-        abs_end = new CalendarWidget(right_tab, 0);
-        abs_end.addListener(this);
-        tab.setControl(abs_end);
-
-        tab = new TabItem(right_tab, 0);
-        tab.setText(Messages.StartEnd_RelEnd);
-        tab.setToolTipText(Messages.StartEnd_RelEnd_TT);
-        rel_end = new RelativeTimeWidget(right_tab, 0);
-        rel_end.addListener(this);
-        tab.setControl(rel_end);
-        */
-
-        // New Row
-        /*
-        Label l = new Label(box, SWT.NULL);
-        l.setText(Messages.StartEnd_StartTime);
-        gd = new GridData();
-        l.setLayoutData(gd);
-
-        start_text = new Label(box, SWT.LEFT);
-        start_text.setToolTipText(Messages.StartEnd_StartTime_TT);
-        gd = new GridData();
-        gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.FILL;
-        start_text.setLayoutData(gd);
-
-        l = new Label(box, SWT.NULL);
-        l.setText(Messages.StartEnd_EndTime);
-        gd = new GridData();
-        l.setLayoutData(gd);
-
-        end_text = new Label(box, SWT.LEFT);
-        end_text.setToolTipText(Messages.StartEnd_EndTime_TT);
-        gd = new GridData();
-        gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.FILL;
-        end_text.setLayoutData(gd);
 
         // New Row
         info = new Label(box, SWT.NULL);
@@ -334,7 +251,6 @@ public class StartEndDialog extends Dialog
         gd.grabExcessHorizontalSpace = true;
         gd.horizontalAlignment = SWT.FILL;
         info.setLayoutData(gd);
-        */
 
         // Initialize GUI content
         setFromSpecifications();
@@ -419,12 +335,6 @@ public class StartEndDialog extends Dialog
             left.text_summary.setText(DATE_FORMAT.format(calendar.toInstant()));
         else
             right.text_summary.setText(DATE_FORMAT.format(calendar.toInstant()));
-            /*
-        if (start.isGreaterOrEqual(end))
-            info.setText(Messages.StartExceedsEnd);
-        else
-            info.setText(""); //$NON-NLS-1$
-            */
     }
 
     // RelativeTimeWidgetListener
