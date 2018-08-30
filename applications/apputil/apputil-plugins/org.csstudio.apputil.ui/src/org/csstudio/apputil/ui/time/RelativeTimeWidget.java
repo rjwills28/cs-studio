@@ -381,6 +381,10 @@ public class RelativeTimeWidget extends Composite
         return (RelativeTime) relative_time.clone();
     }
 
+    public void externalUpdateDataFromGUI() {
+        updateDataFromGUI();
+    }
+
     /** Update the data from the interactive GUI elements. */
     private void updateDataFromGUI()
     {

@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 class TopBottomTimeWidget extends Composite {
@@ -92,11 +91,13 @@ class TopBottomTimeWidget extends Composite {
     public void setAbsolute() {
         topCalendarBox.setBackground(highlightColour);
         bottomRelativeBox.setBackground(defaultColour);
+        calendarTime.externalUpdateDataFromGUI();
     }
 
     public void setRelative() {
         bottomRelativeBox.setBackground(highlightColour);
         topCalendarBox.setBackground(defaultColour);
+        relativeTime.externalUpdateDataFromGUI();
     }
 
 
@@ -191,7 +192,7 @@ public class StartEndDialog extends Dialog
 
     // GUI Elements
 
-    private Text start_text, end_text;
+    private Label start_text, end_text;
     private Label info;
     private TopBottomTimeWidget left, right;
 
@@ -249,10 +250,9 @@ public class StartEndDialog extends Dialog
         final Composite area = (Composite) super.createDialogArea(parent);
 
         final Composite box = new Composite(area, 0);
-        box.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        box.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-        final GridLayout layout = new GridLayout(2, false);
-        //layout.numColumns = 2;
+        final GridLayout layout = new GridLayout(2, true);
         box.setLayout(layout);
         GridData gd;
 
@@ -333,7 +333,7 @@ public class StartEndDialog extends Dialog
         gd = new GridData();
         l.setLayoutData(gd);
 
-        start_text = new Text(box, SWT.LEFT);
+        start_text = new Label(box, SWT.LEFT);
         start_text.setToolTipText(Messages.StartEnd_StartTime_TT);
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
@@ -345,7 +345,7 @@ public class StartEndDialog extends Dialog
         gd = new GridData();
         l.setLayoutData(gd);
 
-        end_text = new Text(box, SWT.LEFT);
+        end_text = new Label(box, SWT.LEFT);
         end_text.setToolTipText(Messages.StartEnd_EndTime_TT);
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
@@ -396,7 +396,7 @@ public class StartEndDialog extends Dialog
     }
 
     /** @see #setFromSpecifications */
-    private void setFromSpecification(TopBottomTimeWidget timewidget, Text text, String specification)
+    private void setFromSpecification(TopBottomTimeWidget timewidget, Label text, String specification)
         throws Exception
     {
         text.setText(specification);

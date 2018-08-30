@@ -159,6 +159,10 @@ public class CalendarWidget extends Composite
         return (Calendar) calendar.clone();
     }
 
+    public void externalUpdateDataFromGUI() {
+        updateDataFromGUI();
+    }
+
     /** Update the data from the interactive GUI elements. */
     private void updateDataFromGUI()
     {
