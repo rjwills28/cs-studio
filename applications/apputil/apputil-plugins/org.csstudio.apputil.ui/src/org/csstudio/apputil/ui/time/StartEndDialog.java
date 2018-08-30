@@ -18,10 +18,6 @@ import org.csstudio.apputil.time.StartEndTimeParser;
 import org.csstudio.java.time.TimestampFormats;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -48,7 +44,9 @@ class TopBottomTimeWidget extends Composite {
     private Composite topCalendarBox;
     private Composite bottomRelativeBox;
 
-    public TopBottomTimeWidget(Composite parent, int style) {
+    public Label text_summary;
+
+    public TopBottomTimeWidget(Composite parent, int style, boolean only_now) {
         super(parent, style);
 
         parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -69,22 +67,26 @@ class TopBottomTimeWidget extends Composite {
         bottomRelativeBox.setLayout(bottomLayout);
         relativeTime = new RelativeTimeWidget(bottomRelativeBox, SWT.NONE);
 
-        HighlightListener mouseTop = new HighlightListener(topCalendarBox, bottomRelativeBox);
-        HighlightListener mouseBottom = new HighlightListener(bottomRelativeBox, topCalendarBox);
+        relativeTime.setVisible(!only_now);
+
+        CalendarHighlightListener calendarListener = new CalendarHighlightListener(topCalendarBox, bottomRelativeBox);
 
         Display.getCurrent().addFilter(SWT.MouseDown, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                if (HighlightListener.isChildOrSelf(e.widget, topCalendarBox)) {
+                if (CalendarHighlightListener.isChildOrSelf(e.widget, topCalendarBox)) {
                     setAbsolute();
                 }
-                if (HighlightListener.isChildOrSelf(e.widget, bottomRelativeBox)) {
+                if (CalendarHighlightListener.isChildOrSelf(e.widget, bottomRelativeBox)) {
                     setRelative();
                 }
             }
         });
 
-        calendarTime.addSelectionListener(mouseTop);
+        calendarTime.addSelectionListener(calendarListener);
+
+        text_summary = new Label(parent, SWT.NONE);
+        text_summary.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
     }
 
@@ -100,12 +102,10 @@ class TopBottomTimeWidget extends Composite {
         relativeTime.externalUpdateDataFromGUI();
     }
 
-
-
 }
 
 
-class HighlightListener implements SelectionListener, MouseListener, FocusListener
+class CalendarHighlightListener implements SelectionListener
 {
 
     private Composite selected;
@@ -114,52 +114,19 @@ class HighlightListener implements SelectionListener, MouseListener, FocusListen
     private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
     private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 
-    public HighlightListener(Composite s, Composite d) {
+    public CalendarHighlightListener(Composite s, Composite d) {
         super();
         selected = s;
         deselected = d;
     }
 
     @Override
-    public void mouseDoubleClick(MouseEvent arg0) { }
-
-    @Override
-    public void mouseDown(MouseEvent arg0) {
-        selected.setBackground(highlightColour);
-        deselected.setBackground(defaultColour);
-    }
-
-    @Override
-    public void mouseUp(MouseEvent arg0) { }
-
-    @Override
-    public void widgetDefaultSelected(SelectionEvent arg0) {
-        selected.setBackground(highlightColour);
-        deselected.setBackground(defaultColour);
-    }
-
-    @Override
     public void widgetSelected(SelectionEvent arg0) {
         selected.setBackground(highlightColour);
         deselected.setBackground(defaultColour);
-   }
+   };
 
-    @Override
-    public void focusGained(FocusEvent arg0) {
-        selected.setBackground(highlightColour);
-        deselected.setBackground(defaultColour);
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void focusLost(FocusEvent arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-static boolean isChildOrSelf(Widget child, Composite parent)
-{
+   static boolean isChildOrSelf(Widget child, Composite parent) {
 
     if (child == parent)
         return true;
@@ -175,6 +142,12 @@ static boolean isChildOrSelf(Widget child, Composite parent)
             return false;
     }
     return false;
+
+}
+
+@Override
+public void widgetDefaultSelected(SelectionEvent arg0) {
+    // TODO Auto-generated method stub
 
 };
 
@@ -192,7 +165,7 @@ public class StartEndDialog extends Dialog
 
     // GUI Elements
 
-    private Label start_text, end_text;
+    //private Label start_text, end_text;
     private Label info;
     private TopBottomTimeWidget left, right;
 
@@ -259,7 +232,7 @@ public class StartEndDialog extends Dialog
         final Composite leftBox = new Composite(box, 0);
         leftBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        left = new TopBottomTimeWidget(leftBox, 0);
+        left = new TopBottomTimeWidget(leftBox, 0, false);
 
         left.calendarTime.addListener(this);
         left.relativeTime.addListener(this);
@@ -270,7 +243,7 @@ public class StartEndDialog extends Dialog
 
         final Composite rightBox = new Composite(box, 0);
         rightBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        right = new TopBottomTimeWidget(rightBox, 0);
+        right = new TopBottomTimeWidget(rightBox, 0, true);
         right.calendarTime.addListener(this);
         right.relativeTime.addListener(this);
         //gd = new GridData();
@@ -328,6 +301,7 @@ public class StartEndDialog extends Dialog
         */
 
         // New Row
+        /*
         Label l = new Label(box, SWT.NULL);
         l.setText(Messages.StartEnd_StartTime);
         gd = new GridData();
@@ -360,6 +334,7 @@ public class StartEndDialog extends Dialog
         gd.grabExcessHorizontalSpace = true;
         gd.horizontalAlignment = SWT.FILL;
         info.setLayoutData(gd);
+        */
 
         // Initialize GUI content
         setFromSpecifications();
@@ -373,8 +348,8 @@ public class StartEndDialog extends Dialog
     @Override
     protected void okPressed()
     {
-        start_specification = start_text.getText();
-        end_specification = end_text.getText();
+        start_specification = left.text_summary.getText();
+        end_specification = right.text_summary.getText();
         // If the specifications don't parse, don't allow 'OK'
         try
         {
@@ -418,7 +393,7 @@ public class StartEndDialog extends Dialog
     {
         try
         {
-            setFromSpecification(left, start_text, start_specification);
+            setFromSpecification(left, left.text_summary, start_specification);
         }
         catch (Exception ex)
         {
@@ -426,7 +401,7 @@ public class StartEndDialog extends Dialog
         }
         try
         {
-            setFromSpecification(right, end_text, end_specification);
+            setFromSpecification(right, right.text_summary, end_specification);
         }
         catch (Exception ex)
         {
@@ -441,9 +416,9 @@ public class StartEndDialog extends Dialog
     public void updatedCalendar(CalendarWidget source, Calendar calendar)
     {
         if (source == left.calendarTime)
-            start_text.setText(DATE_FORMAT.format(calendar.toInstant()));
+            left.text_summary.setText(DATE_FORMAT.format(calendar.toInstant()));
         else
-            end_text.setText(DATE_FORMAT.format(calendar.toInstant()));
+            right.text_summary.setText(DATE_FORMAT.format(calendar.toInstant()));
             /*
         if (start.isGreaterOrEqual(end))
             info.setText(Messages.StartExceedsEnd);
@@ -457,8 +432,8 @@ public class StartEndDialog extends Dialog
     public void updatedTime(RelativeTimeWidget source, RelativeTime time)
     {
         if (source == left.relativeTime)
-            start_text.setText(time.toString());
+            left.text_summary.setText(time.toString());
         else
-            end_text.setText(time.toString());
+            right.text_summary.setText(time.toString());
     }
 }

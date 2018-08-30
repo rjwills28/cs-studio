@@ -16,7 +16,6 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -33,12 +32,9 @@ import org.eclipse.swt.widgets.Text;
 public class RelativeTimeWidget extends Composite
 {
     /** Widgets for date pieces. */
-    private Text year;
-    private Text month, day;
+    private Text year, month, day;
     /** Widgets for time pieces. */
     private Text hour, minute, second;
-    /** Widget to select 'before' or 'after' */
-    private Button before;
 
     /** The relative time pieces for year, month, day, hour, minute, second. */
     private RelativeTime relative_time;
@@ -100,11 +96,11 @@ public class RelativeTimeWidget extends Composite
                 try {
                     int valueNum = Integer.valueOf(newText);
                     if (valueNum < -19 || valueNum > 10)
-                        ((Text)e.widget).setText("");
+                        ((Text)e.widget).setText("0");
                 }
                 catch (NumberFormatException ex) {
                     if (!newText.equals("")) {
-                        ((Text)e.widget).setText("");
+                        ((Text)e.widget).setText("0");
                     }
                 }
             }
