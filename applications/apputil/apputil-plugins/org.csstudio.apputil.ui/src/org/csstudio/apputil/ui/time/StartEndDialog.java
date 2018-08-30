@@ -49,9 +49,13 @@ class TopBottomTimeWidget extends Composite {
     public TopBottomTimeWidget(Composite parent, int style, boolean only_now) {
         super(parent, style);
 
-        parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        final GridLayout leftLayout = new GridLayout();
+        final GridLayout leftLayout = new GridLayout(1, true);
         parent.setLayout(leftLayout);
+        parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        //final FillLayout fillLayout = new FillLayout();
+        //fillLayout.type = SWT.VERTICAL;
+        //parent.setLayout(fillLayout);
 
         topCalendarBox = new Composite(parent, SWT.NULL);
         topCalendarBox.setBackgroundMode(SWT.INHERIT_FORCE);
@@ -222,14 +226,13 @@ public class StartEndDialog extends Dialog
     {
         final Composite area = (Composite) super.createDialogArea(parent);
 
-        final Composite box = new Composite(area, 0);
-        box.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gd.grabExcessVerticalSpace = true;
+        area.setLayoutData(gd);
         final GridLayout layout = new GridLayout(2, true);
-        box.setLayout(layout);
-        GridData gd;
+        area.setLayout(layout);
 
-        final Composite leftBox = new Composite(box, 0);
+        final Composite leftBox = new Composite(area, 0);
         leftBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         left = new TopBottomTimeWidget(leftBox, 0, false);
@@ -237,17 +240,17 @@ public class StartEndDialog extends Dialog
         left.calendarTime.addListener(this);
         left.relativeTime.addListener(this);
 
-        final Composite rightBox = new Composite(box, 0);
+        final Composite rightBox = new Composite(area, 0);
         rightBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         right = new TopBottomTimeWidget(rightBox, 0, true);
         right.calendarTime.addListener(this);
         right.relativeTime.addListener(this);
 
         // New Row
-        info = new Label(box, SWT.NULL);
+        info = new Label(area, SWT.NULL);
         info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
         gd = new GridData();
-        gd.horizontalSpan = layout.numColumns;
+        //gd.horizontalSpan = layout.numColumns;
         gd.grabExcessHorizontalSpace = true;
         gd.horizontalAlignment = SWT.FILL;
         info.setLayoutData(gd);
