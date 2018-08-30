@@ -17,6 +17,7 @@ import org.csstudio.apputil.time.RelativeTimeParserResult;
 import org.csstudio.apputil.time.StartEndTimeParser;
 import org.csstudio.java.time.TimestampFormats;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -350,5 +351,12 @@ public void update()
         else
             right.text_summary.setText(time.toString());
         update();
+    }
+
+    public void addSelectionListener(SelectionAdapter times_entered) {
+        left.calendarTime.addSelectionListener(times_entered);
+        //left.relativeTime.addSelectionListener(times_entered);
+        // TODO Auto-generated method stub
+
     }
 }

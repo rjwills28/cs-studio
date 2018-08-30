@@ -42,8 +42,6 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -592,10 +590,10 @@ public class DataBrowserPropertySheetPage extends Page
         model_listener.changedTimerange();
 
         // Allow entry of start/end times in text boxes
-        final FocusAdapter times_entered = new FocusAdapter()
+        final SelectionAdapter times_entered = new SelectionAdapter()
         {
             @Override
-            public void focusLost(final FocusEvent e)
+            public void widgetSelected(final SelectionEvent e)
             {
                 try
                 {
@@ -611,7 +609,7 @@ public class DataBrowserPropertySheetPage extends Page
                 }
             }
         };
-        widget.addFocusListener(times_entered);
+        widget.addSelectionListener(times_entered);
         //end_time.addSelectionListener(times_entered);
 
         /*
