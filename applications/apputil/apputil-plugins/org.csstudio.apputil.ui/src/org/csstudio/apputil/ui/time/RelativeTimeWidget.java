@@ -59,7 +59,6 @@ public class RelativeTimeWidget extends Composite
             return Integer.parseInt(input.getText());
         }
         catch (NumberFormatException ex) {
-            //input.setText("0");
             return 0;
         }
     }
@@ -125,13 +124,10 @@ public class RelativeTimeWidget extends Composite
         second = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(second, Messages.Time_SelectSeconds);
 
-
         // Initialize to given relative time pieces
         setRelativeTime(relative_time);
 
-
-        final ModifyListener update = new ModifyListener()
-                {
+        final ModifyListener update = new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
 
@@ -141,13 +137,9 @@ public class RelativeTimeWidget extends Composite
                 }
                 catch (NumberFormatException ex) {
                     return;
-                    //if (!newText.equals("")) {
-                    //    ((Text)e.widget).setText("0");
-                   // }
                 }
                 if (!in_GUI_update)
                     updateDataFromGUI();
-
             }
         };
 
@@ -225,30 +217,22 @@ public class RelativeTimeWidget extends Composite
         // In principle, the signs could differ "-1years +5days",
         // but in reality that's most often a typo.
         // So check if anything's negative or all is null.
-        boolean anything_negative = false;
         boolean all_null = true;
         for (int i=0; i<vals.length; ++i)
         {
             if (vals[i] > 0)
                 all_null = false;
             if (vals[i] < 0)
-            {
-                anything_negative = true;
                 all_null = false;
-            }
         }
-        //final boolean negative = all_null  ||  anything_negative;
-        // Apply sign to all
-        //before.setSelection(negative);
-        //for (int i=0; i<vals.length; ++i)
-        //    if (vals[i] < 0)
-        //        vals[i] = -vals[i];
+
         year.setText(String.valueOf(vals[0]));
         month.setText(String.valueOf(vals[1]));
         day.setText(String.valueOf(vals[2]));
         hour.setText(String.valueOf(vals[3]));
         minute.setText(String.valueOf(vals[4]));
         second.setText(String.valueOf(vals[5]));
+
         in_GUI_update = false;
         // fireUpdatedTimestamp
         for (RelativeTimeWidgetListener l : listeners)
@@ -256,7 +240,6 @@ public class RelativeTimeWidget extends Composite
     }
 
     public void addSelectionListener(SelectionAdapter times_entered) {
-        // TODO Auto-generated method stub
         year.addSelectionListener(times_entered);
         month.addSelectionListener(times_entered);
         day.addSelectionListener(times_entered);
@@ -266,15 +249,12 @@ public class RelativeTimeWidget extends Composite
     }
 
     public void addModifyListener(ModifyListener times_entered_modify) {
-
-        // TODO Auto-generated method stub
         year.addModifyListener(times_entered_modify);
         month.addModifyListener(times_entered_modify);
         day.addModifyListener(times_entered_modify);
         hour.addModifyListener(times_entered_modify);
         minute.addModifyListener(times_entered_modify);
         second.addModifyListener(times_entered_modify);
-
     }
 
 }

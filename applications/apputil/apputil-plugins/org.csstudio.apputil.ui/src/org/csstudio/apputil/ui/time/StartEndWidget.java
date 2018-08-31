@@ -35,12 +35,63 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Widget;
 
-class TopBottomTimeWidget extends Composite {
 
-    private Listener listener;
+class CalendarHighlightListener implements SelectionListener
+{
+
+    private Composite selected;
+    private Composite deselected;
+
+    private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
+    private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+
+    public CalendarHighlightListener(Composite s, Composite d) {
+        super();
+        selected = s;
+        deselected = d;
+    }
+
+    @Override
+    public void widgetSelected(SelectionEvent arg0) {
+        selected.setBackground(highlightColour);
+        deselected.setBackground(defaultColour);
+    };
+
+    @Override
+    public void widgetDefaultSelected(SelectionEvent arg0) {
+        selected.setBackground(highlightColour);
+        deselected.setBackground(defaultColour);
+    };
+
+    static boolean isChildOrSelf(Widget child, Composite parent) {
+
+        if (child == parent)
+            return true;
+
+        for (Control c : parent.getChildren()) {
+            if (c instanceof Composite)
+            {
+                boolean result = isChildOrSelf(child, (Composite)c);
+                if (result)
+                    return true;
+            }
+            else if (c == child)
+                return false;
+        }
+
+        return false;
+
+    }
+
+}
+
+
+class TopBottomTimeWidget extends Composite {
 
     static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
     static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+
+    private Listener mouseDownListener;
 
     public CalendarWidget calendarTime;
     public RelativeTimeWidget relativeTime;
@@ -49,8 +100,6 @@ class TopBottomTimeWidget extends Composite {
     private Composite bottomRelativeBox;
 
     public Label text_summary;
-
-    public Listener getListener() { return listener; }
 
     public TopBottomTimeWidget(Composite parent, int style, boolean only_now) {
         super(parent, style);
@@ -77,7 +126,7 @@ class TopBottomTimeWidget extends Composite {
 
         CalendarHighlightListener calendarListener = new CalendarHighlightListener(topCalendarBox, bottomRelativeBox);
 
-        listener = new Listener() {
+        mouseDownListener = new Listener() {
             @Override
             public void handleEvent(Event e) {
                 if (CalendarHighlightListener.isChildOrSelf(e.widget, topCalendarBox)) {
@@ -89,7 +138,7 @@ class TopBottomTimeWidget extends Composite {
             }
         };
 
-        Display.getCurrent().addFilter(SWT.MouseDown, listener);
+        Display.getCurrent().addFilter(SWT.MouseDown, mouseDownListener);
 
         calendarTime.addSelectionListener(calendarListener);
 
@@ -100,7 +149,7 @@ class TopBottomTimeWidget extends Composite {
 
             @Override
             public void widgetDisposed(DisposeEvent arg0) {
-                Display.getCurrent().removeFilter(SWT.MouseDown, listener);
+                Display.getCurrent().removeFilter(SWT.MouseDown, mouseDownListener);
             }
 
         });
@@ -122,62 +171,12 @@ class TopBottomTimeWidget extends Composite {
 }
 
 
-class CalendarHighlightListener implements SelectionListener
-{
-
-    private Composite selected;
-    private Composite deselected;
-
-    private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
-    private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-
-    public CalendarHighlightListener(Composite s, Composite d) {
-        super();
-        selected = s;
-        deselected = d;
-    }
-
-    @Override
-    public void widgetSelected(SelectionEvent arg0) {
-        selected.setBackground(highlightColour);
-        deselected.setBackground(defaultColour);
-   };
-
-   static boolean isChildOrSelf(Widget child, Composite parent) {
-
-    if (child == parent)
-        return true;
-
-    for (Control c : parent.getChildren()) {
-        if (c instanceof Composite)
-        {
-            boolean result = isChildOrSelf(child, (Composite)c);
-            if (result)
-                return true;
-        }
-        else if (c == child)
-            return false;
-    }
-    return false;
-
-}
-
-@Override
-public void widgetDefaultSelected(SelectionEvent arg0) {
-    // TODO Auto-generated method stub
-
-};
-
-}
-
 /** Dialog for entering relative as well as absolute start and end times.
  *  @author Kay Kasemir
  */
 public class StartEndWidget extends Composite
     implements CalendarWidgetListener, RelativeTimeWidgetListener
 {
-
-    public Listener getListener() { return left.getListener(); }
 
     private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
     private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -205,8 +204,6 @@ public class StartEndWidget extends Composite
         start_specification = start;
         end_specification = end;
         createComposite();
-        // Allow resize
-        //setShellStyle(getShellStyle() | SWT.RESIZE);
     }
 
     /** @return Start specification. */
@@ -229,18 +226,8 @@ public class StartEndWidget extends Composite
     public final boolean isEndNow()
     {   return start_end.isEndNow(); }
 
-    //@Override
-    //protected void configureShell(Shell shell)
-    //{
-    //    super.configureShell(shell);
-    //    shell.setText(Messages.StartEnd_Title);
-   // }
-
-    //@Override
     private void createComposite()
-    //protected Control createDialogArea(Composite parent)
     {
-        //final Composite area = new Composite(parent, SWT.NONE);//(Composite) super.createDialogArea(parent);
 
         final GridLayout layout = new GridLayout(2, true);
         this.setLayout(layout);
@@ -272,29 +259,21 @@ public class StartEndWidget extends Composite
         // New Row
         info = new Label(this, SWT.NULL);
         info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
-        gd = new GridData();
-        //gd.horizontalSpan = layout.numColumns;
-        gd.grabExcessHorizontalSpace = true;
-        gd.horizontalAlignment = SWT.FILL;
-        info.setLayoutData(gd);
+        info.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
         // Initialize GUI content
         setFromSpecifications();
 
-        return;
     }
 
-    /** If the dialog is closed via OK,
-     *  update the start/end specs from the GUI.
-     */
    @Override
 public void update()
     {
         start_specification = left.text_summary.getText();
         end_specification = right.text_summary.getText();
-        // If the specifications don't parse, don't allow 'OK'
+
         try
-       {
+        {
             start_end =
                 new StartEndTimeParser(start_specification, end_specification);
             if (start_end.getStart().compareTo(start_end.getEnd()) >= 0)
@@ -313,7 +292,7 @@ public void update()
         // Proceed...
         info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
         info.setText("Times accepted: Start: " + start_specification + " End: " + end_specification);
-        //super.okPressed();
+
     }
 
     /** @see #setFromSpecifications */
