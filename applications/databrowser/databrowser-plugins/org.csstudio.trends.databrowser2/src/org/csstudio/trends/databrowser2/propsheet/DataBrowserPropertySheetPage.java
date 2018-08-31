@@ -42,6 +42,8 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -560,6 +562,27 @@ public class DataBrowserPropertySheetPage extends Page
         model_listener.changedTimerange();
 
         // Allow entry of start/end times in text boxes
+        final ModifyListener times_entered_modify = new ModifyListener() {
+
+            @Override
+            public void modifyText(ModifyEvent arg0) {
+                // TODO Auto-generated method stub
+                try
+                {
+                    StartEndTimeAction.run(model, operations_manager,
+                            start_end_time.getStartSpecification(), start_end_time.getEndSpecification());
+                }
+                catch (Exception ex)
+                {
+                    MessageDialog.openError(parent.getShell(), Messages.Error,
+                            Messages.InvalidStartEndTimeError);
+                    // Restore unchanged model time range
+                    model_listener.changedTimerange();
+                }
+            }
+
+        };
+
         final SelectionAdapter times_entered = new SelectionAdapter()
         {
             @Override
@@ -581,6 +604,7 @@ public class DataBrowserPropertySheetPage extends Page
         };
 
         start_end_time.addSelectionListener(times_entered);
+        start_end_time.addModifyListener(times_entered_modify);
                 Label label = new Label(parent, 0);
         label.setText(Messages.GridLbl);
         label.setLayoutData(new GridData());

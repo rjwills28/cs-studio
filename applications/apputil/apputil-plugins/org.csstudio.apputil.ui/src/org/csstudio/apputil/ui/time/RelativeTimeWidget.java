@@ -11,9 +11,8 @@ import java.util.ArrayList;
 
 import org.csstudio.apputil.time.RelativeTime;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -60,7 +59,7 @@ public class RelativeTimeWidget extends Composite
             return Integer.parseInt(input.getText());
         }
         catch (NumberFormatException ex) {
-            input.setText("0");
+            //input.setText("0");
             return 0;
         }
     }
@@ -70,26 +69,7 @@ public class RelativeTimeWidget extends Composite
             GridData fd = new GridData();
             fd.widthHint = 30;
             input.setLayoutData(fd);
-
             input.setToolTipText(tooltiptext);
-
-            input.addFocusListener(new FocusListener() {
-                @Override
-                public void focusGained(FocusEvent arg0) {
-                }
-                @Override
-                public void focusLost(FocusEvent e) {
-                    String newText = ((Text)e.widget).getText();
-                    try {
-                        Integer.valueOf(newText);
-                    }
-                    catch (NumberFormatException ex) {
-                        if (!newText.equals("")) {
-                            ((Text)e.widget).setText("0");
-                        }
-                    }
-                }
-            });
 
         }
 
@@ -113,36 +93,36 @@ public class RelativeTimeWidget extends Composite
         l.setText(Messages.Time_Years);
         gd = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         l.setLayoutData(gd);
-        year = new Text(this, SWT.BORDER | SWT.WRAP);
+        year = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(year, Messages.Time_SelectYear);
         l = new Label(this, SWT.NONE);
         l.setText(Messages.Time_Hours);
         l.setLayoutData(gd);
-        hour = new Text(this, SWT.BORDER | SWT.WRAP);
+        hour = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(hour, Messages.Time_SelectHour);
 
         // New row (Month / Minutes)
         l = new Label(this, SWT.NONE);
         l.setText(Messages.Time_Months);
-        month = new Text(this, SWT.BORDER | SWT.WRAP);
+        month = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(month, Messages.Time_SelectMonth);
         l = new Label(this, SWT.NONE);
         l.setText(Messages.Time_Minutes);
         gd = new GridData();
         l.setLayoutData(gd);
-        minute = new Text(this, SWT.BORDER | SWT.WRAP);
+        minute = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(minute, Messages.Time_SelectMinute);
 
         // New row (Days / Secs)
         l = new Label(this, SWT.NONE);
         l.setText(Messages.Time_Days);
-        day = new Text(this, SWT.BORDER | SWT.WRAP);
+        day = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(day, Messages.Time_SelectDay);
         l = new Label(this, SWT.NONE);
         l.setText(Messages.Time_Seconds);
         gd = new GridData();
         l.setLayoutData(gd);
-        second = new Text(this, SWT.BORDER | SWT.WRAP);
+        second = new Text(this, SWT.BORDER);
         prepareTimeDigitInput(second, Messages.Time_SelectSeconds);
 
 
@@ -150,22 +130,33 @@ public class RelativeTimeWidget extends Composite
         setRelativeTime(relative_time);
 
 
-        final FocusAdapter update = new FocusAdapter()
-        {
+        final ModifyListener update = new ModifyListener()
+                {
             @Override
-            public void focusLost(FocusEvent e)
-            {
+            public void modifyText(ModifyEvent e) {
+
+                String newText = ((Text)e.widget).getText();
+                try {
+                    Integer.valueOf(newText);
+                }
+                catch (NumberFormatException ex) {
+                    return;
+                    //if (!newText.equals("")) {
+                    //    ((Text)e.widget).setText("0");
+                   // }
+                }
                 if (!in_GUI_update)
                     updateDataFromGUI();
+
             }
         };
 
-        year.addFocusListener(update);
-        month.addFocusListener(update);
-        day.addFocusListener(update);
-        hour.addFocusListener(update);
-        minute.addFocusListener(update);
-        second.addFocusListener(update);
+        year.addModifyListener(update);
+        month.addModifyListener(update);
+        day.addModifyListener(update);
+        hour.addModifyListener(update);
+        minute.addModifyListener(update);
+        second.addModifyListener(update);
 
     }
 
@@ -272,6 +263,18 @@ public class RelativeTimeWidget extends Composite
         hour.addSelectionListener(times_entered);
         minute.addSelectionListener(times_entered);
         second.addSelectionListener(times_entered);
+    }
+
+    public void addModifyListener(ModifyListener times_entered_modify) {
+
+        // TODO Auto-generated method stub
+        year.addModifyListener(times_entered_modify);
+        month.addModifyListener(times_entered_modify);
+        day.addModifyListener(times_entered_modify);
+        hour.addModifyListener(times_entered_modify);
+        minute.addModifyListener(times_entered_modify);
+        second.addModifyListener(times_entered_modify);
+
     }
 
 }

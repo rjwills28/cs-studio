@@ -19,6 +19,7 @@ import org.csstudio.java.time.TimestampFormats;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -390,5 +391,10 @@ public void update()
             setFromSpecification(right, right.text_summary, endSpecification);
         } catch (Exception e) {
         }
+    }
+
+    public void addModifyListener(ModifyListener times_entered_modify) {
+        left.relativeTime.addModifyListener(times_entered_modify);
+        right.relativeTime.addModifyListener(times_entered_modify);
     }
 }
