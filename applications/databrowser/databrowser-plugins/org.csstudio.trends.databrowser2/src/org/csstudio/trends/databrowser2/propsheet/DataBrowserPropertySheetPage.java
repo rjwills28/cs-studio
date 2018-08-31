@@ -610,11 +610,16 @@ public class DataBrowserPropertySheetPage extends Page
 
         start_end_time.addSelectionListener(times_entered);
         start_end_time.addModifyListener(times_entered_modify);
-                Label label = new Label(parent, 0);
+
+
+        final Composite llayout = new Composite(parent, SWT.NONE);
+        llayout.setLayout(new GridLayout(2, false));
+        llayout.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+        Label label = new Label(llayout, 0);
         label.setText(Messages.GridLbl);
         label.setLayoutData(new GridData());
 
-        show_grid = new Button(parent, SWT.CHECK);
+        show_grid = new Button(llayout, SWT.CHECK);
         show_grid.setToolTipText(Messages.GridTT);
         show_grid.setLayoutData(new GridData(0, 0, false, false, 2, 1));
         show_grid.addSelectionListener(new SelectionAdapter()

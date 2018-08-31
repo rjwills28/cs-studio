@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser2.ui;
 
+import org.csstudio.apputil.time.RelativeTimeParser;
+import org.csstudio.apputil.time.RelativeTimeParserResult;
 import org.csstudio.apputil.time.StartEndTimeParser;
 import org.csstudio.apputil.ui.time.StartEndDialog;
 import org.csstudio.swt.rtplot.undo.UndoableActionManager;
@@ -49,9 +51,16 @@ public class StartEndTimeAction
             final UndoableActionManager operations_manager,
             final String start_time, final String end_time) throws Exception
     {
+        RelativeTimeParserResult rel_end = RelativeTimeParser.parse(end_time);
+
+        model.enableScrolling(!rel_end.isAbsolute());
+
         // Parsing somewhat redundant, but gives exception 'right away' for better error display
         final StartEndTimeParser parser =
             new StartEndTimeParser(start_time, end_time);
+
+
+
         new ChangeTimerangeCommand(model, operations_manager, parser.isEndNow(), start_time, end_time);
     }
 }

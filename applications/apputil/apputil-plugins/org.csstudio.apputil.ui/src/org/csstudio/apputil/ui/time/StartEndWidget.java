@@ -271,7 +271,7 @@ public class StartEndWidget extends Composite
 
         // New Row
         info = new Label(this, SWT.NULL);
-        info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+        info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
         gd = new GridData();
         //gd.horizontalSpan = layout.numColumns;
         gd.grabExcessHorizontalSpace = true;
@@ -299,17 +299,20 @@ public void update()
                 new StartEndTimeParser(start_specification, end_specification);
             if (start_end.getStart().compareTo(start_end.getEnd()) >= 0)
             {
+                info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
                 info.setText(Messages.StartEnd_StartExceedsEnd);
                 return;
             }
         }
         catch (Exception ex)
         {
+            info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
             info.setText(Messages.StartEnd_Error + ex.getMessage());
             return;
         }
         // Proceed...
-        info.setText("");
+        info.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
+        info.setText("Times accepted: Start: " + start_specification + " End: " + end_specification);
         //super.okPressed();
     }
 
