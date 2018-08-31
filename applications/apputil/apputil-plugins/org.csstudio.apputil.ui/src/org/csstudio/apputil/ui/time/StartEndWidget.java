@@ -50,6 +50,8 @@ class TopBottomTimeWidget extends Composite {
 
     public Label text_summary;
 
+    public Listener getListener() { return listener; }
+
     public TopBottomTimeWidget(Composite parent, int style, boolean only_now) {
         super(parent, style);
 
@@ -174,6 +176,8 @@ public void widgetDefaultSelected(SelectionEvent arg0) {
 public class StartEndWidget extends Composite
     implements CalendarWidgetListener, RelativeTimeWidgetListener
 {
+
+    public Listener getListener() { return left.getListener(); }
 
     private static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
     private static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);

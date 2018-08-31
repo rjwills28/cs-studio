@@ -61,6 +61,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FontDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -582,6 +583,10 @@ public class DataBrowserPropertySheetPage extends Page
             }
 
         };
+
+        Display.getCurrent().addFilter(SWT.MouseDown, start_end_time.getListener());
+
+
 
         final SelectionAdapter times_entered = new SelectionAdapter()
         {
