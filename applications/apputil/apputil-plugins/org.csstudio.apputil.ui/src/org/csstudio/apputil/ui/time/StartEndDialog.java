@@ -89,17 +89,14 @@ public class StartEndDialog extends Dialog
 
         final Composite area = (Composite) super.createDialogArea(parent);
 
-        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final GridLayout layout = new GridLayout(1, false);
+        area.setLayout(layout);
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
         gd.grabExcessVerticalSpace = true;
         area.setLayoutData(gd);
-        final GridLayout layout = new GridLayout(1, true);
-        area.setLayout(layout);
-
 
         startEndWidget = new StartEndWidget(area, SWT.NONE, start, end);
-        //GridLayout gd = new GridLayout();
 
-//        area.setLayout(new GridLayout());
         return area;
     }
 

@@ -110,7 +110,9 @@ public class DataBrowserPropertySheetPage extends Page
 
     private Composite archive_panel, formula_panel;
 
-    private Text formula_txt, start_time, end_time, title, update_period, scroll_step;
+    private Text formula_txt, title, update_period, scroll_step;
+
+    private StartEndWidget start_end_time;
 
     private ColorBlob background;
 
@@ -169,8 +171,8 @@ public class DataBrowserPropertySheetPage extends Page
         @Override
         public void changedTimerange()
         {
-            //start_time.setText(model.getStartSpecification());
-            //end_time.setText(model.getEndSpecification());
+            start_end_time.setStartSpecification(model.getStartSpecification());
+            start_end_time.setEndSpecification(model.getEndSpecification());
         }
 
         /** {@inheritDoc} */
@@ -548,43 +550,11 @@ public class DataBrowserPropertySheetPage extends Page
         final TabItem time_tab = new TabItem(tab_folder, 0);
         time_tab.setText(Messages.TimeAxis);
 
-        //final StartEndDialog dialog = new StartEndDialog(Display.getCurrent().getActiveShell(), "1 days", "Now");
-
         final Composite parent = new Composite(tab_folder, 0);
         parent.setLayout(new GridLayout(1, false));
-        final StartEndWidget widget = new StartEndWidget(parent, 0);
+        start_end_time = new StartEndWidget(parent, 0);
 
-        /*
-        // Start Time: ______ [...]
-        Label label = new Label(parent, 0);
-        label.setText(Messages.StartTimeLbl);
-        label.setLayoutData(new GridData());
-
-        start_time = new Text(parent, SWT.BORDER);
-        start_time.setToolTipText(Messages.StartTimeTT);
-        start_time.setLayoutData(new GridData(SWT.FILL, 0, true, false));
-
-        final Button start_end = new Button(parent, SWT.PUSH);
-        start_end.setText(Messages.StartEndDialogBtn);
-        start_end.setToolTipText(Messages.StartEndDialogTT);
-        start_end.setLayoutData(new GridData());
-
-        // End Time:   ______ [...]
-        label = new Label(parent, 0);
-        label.setText(Messages.EndTimeLbl);
-        label.setLayoutData(new GridData());
-
-        end_time = new Text(parent, SWT.BORDER);
-        end_time.setToolTipText(Messages.EndTimeTT);
-        end_time.setLayoutData(new GridData(SWT.FILL, 0, true, false));
-
-        final Button start_end2 = new Button(parent, SWT.PUSH);
-        start_end2.setText(Messages.StartEndDialogBtn);
-        start_end2.setToolTipText(Messages.StartEndDialogTT);
-        start_end2.setLayoutData(new GridData());
-        */
         time_tab.setControl(parent);
-
 
         // Initialize with model's current start/end time
         model_listener.changedTimerange();
@@ -598,7 +568,7 @@ public class DataBrowserPropertySheetPage extends Page
                 try
                 {
                     StartEndTimeAction.run(model, operations_manager,
-                            widget.getStartSpecification(), widget.getEndSpecification());
+                            start_end_time.getStartSpecification(), start_end_time.getEndSpecification());
                 }
                 catch (Exception ex)
                 {
@@ -609,52 +579,9 @@ public class DataBrowserPropertySheetPage extends Page
                 }
             }
         };
-        widget.addSelectionListener(times_entered);
-        //end_time.addSelectionListener(times_entered);
 
-        /*
-        // Buttons start start/end dialog
-        final SelectionListener start_end_action = new SelectionAdapter()
-        {
-            @Override
-            public void widgetSelected(final SelectionEvent e)
-            {
-                StartEndTimeAction.run(parent.getShell(), model, operations_manager);
-            }
-        };
-        start_end.addSelectionListener(start_end_action);
-        start_end2.addSelectionListener(start_end_action);
-
-        // Time span shortcut buttons, with filler to align under start/end time text fields
-        label = new Label(parent, 0);
-        label.setText(""); //$NON-NLS-1$
-        label.setLayoutData(new GridData());
-
-        final Composite shortcut_bar = new Composite(parent, 0);
-        shortcut_bar.setLayoutData(new GridData(SWT.FILL, 0, true, false, 2, 1));
-        final RowLayout row_layout = new RowLayout();
-        row_layout.marginLeft = 0;
-        row_layout.marginTop = 0;
-        shortcut_bar.setLayout(row_layout);
-        final String[][] shortcuts = Preferences.getTimespanShortcuts();
-        for (String[] title_start : shortcuts)
-        {
-            final String start_spec = title_start[1];
-            Button shortcut = new Button(shortcut_bar, SWT.PUSH);
-            shortcut.setText(title_start[0]);
-            shortcut.addSelectionListener(new SelectionAdapter()
-            {
-                @Override
-                public void widgetSelected(final SelectionEvent e)
-                {
-                    new ChangeTimerangeCommand(model, operations_manager,
-                            true, start_spec, RelativeTime.NOW);
-                }
-            });
-        }
-*/
-
-        Label label = new Label(parent, 0);
+        start_end_time.addSelectionListener(times_entered);
+                Label label = new Label(parent, 0);
         label.setText(Messages.GridLbl);
         label.setLayoutData(new GridData());
 
@@ -669,7 +596,9 @@ public class DataBrowserPropertySheetPage extends Page
                 new ChangeTimeAxisConfigCommand(model, operations_manager, show_grid.getSelection());
             }
         });
+
         model_listener.changeTimeAxisConfig();
+
     }
 
     /** Create tab for traces (PVs, Formulas)

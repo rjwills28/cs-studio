@@ -14,6 +14,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -53,7 +54,18 @@ public class RelativeTimeWidget extends Composite
         this(parent, flags, new RelativeTime());
     }
 
-    void prepareTimeDigitInput(Text input, String tooltiptext) {
+    private int getTimeDigitInput(Text input) {
+
+        try {
+            return Integer.parseInt(input.getText());
+        }
+        catch (NumberFormatException ex) {
+            input.setText("0");
+            return 0;
+        }
+    }
+
+    private void prepareTimeDigitInput(Text input, String tooltiptext) {
 
             GridData fd = new GridData();
             fd.widthHint = 30;
@@ -124,11 +136,12 @@ public class RelativeTimeWidget extends Composite
         // New row (Days / Secs)
         l = new Label(this, SWT.NONE);
         l.setText(Messages.Time_Days);
-        gd = new GridData();
-        l.setLayoutData(gd);
         day = new Text(this, SWT.BORDER | SWT.WRAP);
         prepareTimeDigitInput(day, Messages.Time_SelectDay);
         l = new Label(this, SWT.NONE);
+        l.setText(Messages.Time_Seconds);
+        gd = new GridData();
+        l.setLayoutData(gd);
         second = new Text(this, SWT.BORDER | SWT.WRAP);
         prepareTimeDigitInput(second, Messages.Time_SelectSeconds);
 
@@ -194,12 +207,12 @@ public class RelativeTimeWidget extends Composite
         //final int sign = before.getSelection() ? -1 : 1;
         final int ymdhms[] = new int[]
         {
-            Integer.parseInt(year.getText()),
-            Integer.parseInt(month.getText()),
-            Integer.parseInt(day.getText()),
-            Integer.parseInt(hour.getText()),
-            Integer.parseInt(minute.getText()),
-            Integer.parseInt(second.getText())
+            getTimeDigitInput(year),
+            getTimeDigitInput(month),
+            getTimeDigitInput(day),
+            getTimeDigitInput(hour),
+            getTimeDigitInput(minute),
+            getTimeDigitInput(second)
         };
         relative_time = new RelativeTime(ymdhms);
         updateGUIfromData();
@@ -249,6 +262,16 @@ public class RelativeTimeWidget extends Composite
         // fireUpdatedTimestamp
         for (RelativeTimeWidgetListener l : listeners)
             l.updatedTime(this, relative_time);
+    }
+
+    public void addSelectionListener(SelectionAdapter times_entered) {
+        // TODO Auto-generated method stub
+        year.addSelectionListener(times_entered);
+        month.addSelectionListener(times_entered);
+        day.addSelectionListener(times_entered);
+        hour.addSelectionListener(times_entered);
+        minute.addSelectionListener(times_entered);
+        second.addSelectionListener(times_entered);
     }
 
 }

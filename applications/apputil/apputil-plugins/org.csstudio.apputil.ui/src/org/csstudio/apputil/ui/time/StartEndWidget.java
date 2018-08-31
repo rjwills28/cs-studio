@@ -17,6 +17,8 @@ import org.csstudio.apputil.time.RelativeTimeParserResult;
 import org.csstudio.apputil.time.StartEndTimeParser;
 import org.csstudio.java.time.TimestampFormats;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -34,6 +36,8 @@ import org.eclipse.swt.widgets.Widget;
 
 class TopBottomTimeWidget extends Composite {
 
+    private Listener listener;
+
     static final Color highlightColour = new Color(Display.getCurrent(), 255, 237, 196);
     static final Color defaultColour = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 
@@ -48,23 +52,19 @@ class TopBottomTimeWidget extends Composite {
     public TopBottomTimeWidget(Composite parent, int style, boolean only_now) {
         super(parent, style);
 
-        final GridLayout leftLayout = new GridLayout(1, true);
-        parent.setLayout(leftLayout);
-        parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        setLayout(new GridLayout(1, false));
 
-        //final FillLayout fillLayout = new FillLayout();
-        //fillLayout.type = SWT.VERTICAL;
-        //parent.setLayout(fillLayout);
-
-        topCalendarBox = new Composite(parent, SWT.NULL);
+        topCalendarBox = new Composite(this, SWT.WRAP);
+        topCalendarBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
         topCalendarBox.setBackgroundMode(SWT.INHERIT_FORCE);
         final FillLayout topLayout = new FillLayout();
         topLayout.type = SWT.VERTICAL;
         topCalendarBox.setLayout(topLayout);
         calendarTime = new CalendarWidget(topCalendarBox, SWT.NONE);
 
-        bottomRelativeBox = new Composite(parent, SWT.NULL);
+        bottomRelativeBox = new Composite(this, SWT.WRAP);
         bottomRelativeBox.setBackgroundMode(SWT.INHERIT_FORCE);
+        bottomRelativeBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
         final FillLayout bottomLayout = new FillLayout();
         bottomLayout.type = SWT.VERTICAL;
         bottomRelativeBox.setLayout(bottomLayout);
@@ -74,7 +74,7 @@ class TopBottomTimeWidget extends Composite {
 
         CalendarHighlightListener calendarListener = new CalendarHighlightListener(topCalendarBox, bottomRelativeBox);
 
-        Display.getCurrent().addFilter(SWT.MouseDown, new Listener() {
+        listener = new Listener() {
             @Override
             public void handleEvent(Event e) {
                 if (CalendarHighlightListener.isChildOrSelf(e.widget, topCalendarBox)) {
@@ -84,12 +84,23 @@ class TopBottomTimeWidget extends Composite {
                     setRelative();
                 }
             }
-        });
+        };
+
+        Display.getCurrent().addFilter(SWT.MouseDown, listener);
 
         calendarTime.addSelectionListener(calendarListener);
 
-        text_summary = new Label(parent, SWT.NONE);
+        text_summary = new Label(this, SWT.NONE);
         text_summary.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        this.addDisposeListener(new DisposeListener() {
+
+            @Override
+            public void widgetDisposed(DisposeEvent arg0) {
+                Display.getCurrent().removeFilter(SWT.MouseDown, listener);
+            }
+
+        });
 
     }
 
@@ -226,23 +237,30 @@ public class StartEndWidget extends Composite
     {
         //final Composite area = new Composite(parent, SWT.NONE);//(Composite) super.createDialogArea(parent);
 
-        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        gd.grabExcessVerticalSpace = true;
-        this.setLayoutData(gd);
         final GridLayout layout = new GridLayout(2, true);
         this.setLayout(layout);
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        this.setLayoutData(gd);
 
         final Composite leftBox = new Composite(this, 0);
+        leftBox.setLayout(new GridLayout(1, false));
         leftBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         left = new TopBottomTimeWidget(leftBox, 0, false);
+        left.setLayout(new GridLayout(1, false));
+        left.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         left.calendarTime.addListener(this);
         left.relativeTime.addListener(this);
 
         final Composite rightBox = new Composite(this, 0);
+        rightBox.setLayout(new GridLayout(1, false));
         rightBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
         right = new TopBottomTimeWidget(rightBox, 0, true);
+        right.setLayout(new GridLayout(1, false));
+        right.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
         right.calendarTime.addListener(this);
         right.relativeTime.addListener(this);
 
@@ -355,8 +373,22 @@ public void update()
 
     public void addSelectionListener(SelectionAdapter times_entered) {
         left.calendarTime.addSelectionListener(times_entered);
-        //left.relativeTime.addSelectionListener(times_entered);
-        // TODO Auto-generated method stub
+        right.calendarTime.addSelectionListener(times_entered);
+        left.relativeTime.addSelectionListener(times_entered);
+        right.relativeTime.addSelectionListener(times_entered);
+    }
 
+    public void setStartSpecification(String startSpecification) {
+        try {
+            setFromSpecification(left, left.text_summary, startSpecification);
+        } catch (Exception e) {
+        }
+    }
+
+    public void setEndSpecification(String endSpecification) {
+        try {
+            setFromSpecification(right, right.text_summary, endSpecification);
+        } catch (Exception e) {
+        }
     }
 }
