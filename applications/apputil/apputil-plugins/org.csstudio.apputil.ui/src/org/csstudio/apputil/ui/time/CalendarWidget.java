@@ -196,5 +196,6 @@ public class CalendarWidget extends Composite
 
     public void addSelectionListener(SelectionListener mouseTop) {
         date.addSelectionListener(mouseTop);
+        time.addSelectionListener(mouseTop);
     }
 }

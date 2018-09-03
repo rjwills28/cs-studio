@@ -53,14 +53,11 @@ public class StartEndTimeAction
     {
         RelativeTimeParserResult rel_end = RelativeTimeParser.parse(end_time);
 
-        model.enableScrolling(!rel_end.isAbsolute());
 
         // Parsing somewhat redundant, but gives exception 'right away' for better error display
         final StartEndTimeParser parser =
             new StartEndTimeParser(start_time, end_time);
 
-
-
-        new ChangeTimerangeCommand(model, operations_manager, parser.isEndNow(), start_time, end_time);
+        new ChangeTimerangeCommand(model, operations_manager, !rel_end.isAbsolute(), start_time, end_time);
     }
 }
