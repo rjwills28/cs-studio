@@ -38,7 +38,8 @@ public class DetailPanelModel extends AbstractContainerModel implements IPVWidge
     }
 
     /* Constants */
-    public static final int MAX_ROW_COUNT = 200;
+    /* This was previously 200, but a use case exceeding this value was found. */
+    public static final int MAX_ROW_COUNT = 5000;
 
     /* The widget properties */
     public static final String PROP_ROW_COUNT = "row_count";
