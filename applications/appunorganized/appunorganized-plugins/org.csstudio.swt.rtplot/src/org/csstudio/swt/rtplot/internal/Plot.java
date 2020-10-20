@@ -665,75 +665,26 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends Canvas implements Pai
     /** Draw all components into image buffer */
     private void updateImageBuffer()
     {
-        final Rectangle area_copy = area;
-        if (area_copy.width <= 0  ||  area_copy.height <= 0)
-            return;
 
-        final Image image = new Image(display, area_copy);
+        System.out.println("\nAbout to make image.");
+        final Image image = new Image(display, new Rectangle(0, 0, 100, 100));
         final GC gc = new GC(image);
-
-        if (need_layout.getAndSet(false))
-            computeLayout(gc, area_copy);
-
-        final Rectangle plot_bounds = plot_area.getBounds();
-
-        gc.setBackground(media.get(background));
-        gc.fillRectangle(area_copy);
-
-        title_part.paint(gc, media, title_font);
-        legend.paint(gc, media, legend_font, traces);
-
-        // Shade the area in the plot that's in the future.
-        if (x_axis instanceof TimeAxis)
-        {
-            final int future_x = ((TimeAxis)x_axis).getScreenCoord(Instant.now());
-            final Color orig = gc.getBackground();
-            // Use light gray for bright background, otherwise dark gray
-            final Color shade = (background.getHSB()[2] >= 0.5)
-                    ? new Color(getDisplay(), 240, 240, 240)
-                    : new Color(getDisplay(), 50, 50, 50);
-            gc.setBackground(shade);
-            gc.fillRectangle(future_x, 0, area_copy.width - future_x, area_copy.height);
-            gc.setBackground(orig);
-            shade.dispose();
-        }
-
-        // Fetch x_axis transformation and use that to paint all traces,
-        // because X Axis tends to change from scrolling
-        // while we're painting traces
-//        x_axis.setLabelFont(label_font);
-//        x_axis.setScaleFont(scale_font);
-        x_axis.paint(gc, media, plot_bounds);
-        final ScreenTransform<XTYPE> x_transform = x_axis.getScreenTransform();
-        for (YAxisImpl<XTYPE> y_axis : y_axes)
-        {
-//            y_axis.setLabelFont(label_font);
-//            y_axis.setScaleFont(scale_font);
-            y_axis.paint(gc, media, plot_bounds);
-        }
-
-        gc.setClipping(plot_bounds);
-        plot_area.paint(gc, media);
-
-        for (YAxisImpl<XTYPE> y_axis : y_axes)
-            for (Trace<XTYPE> trace : y_axis.getTraces())
-                trace_painter.paint(gc, media, plot_area.getBounds(), opacity, x_transform, y_axis, trace);
-
-        // Annotations use label font
-        gc.setFont(label_font);
-        for (AnnotationImpl<XTYPE> annotation : annotations)
-            annotation.paint(gc, media, x_axis, y_axes.get(annotation.getTrace().getYAxis()));
-
-        gc.dispose();
+        gc.setBackground(new Color(new RGB(255, 0, 0)));
+        gc.fillRectangle(new Rectangle(25, 25, 50, 50));
+        System.out.println("Made image");
 
         // Update image
         final Image old_image = plot_image.orElse(null);
+        System.out.println("old image " + old_image);
         plot_image = Optional.of(image);
+        System.out.println("plotimage " + plot_image);
         if (old_image != null)
         {
             synchronized (old_image)
             {
+                System.out.println("disposing...");
                 old_image.dispose();
+                System.out.println("disposed");
             }
         }
     }
